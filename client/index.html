@@ -1,19 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Socket.IO Test</title>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-</head>
-<body>
-  <h1>Socket.IO Frontend</h1>
-  <script>
-    const socket = io('http://localhost:1234');
-
-    socket.emit("join_constellation", "starlink")
-
-    socket.on("constellation_update", (con) => {
-        console.log(con);
-    })
-  </script>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + Vue</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>
