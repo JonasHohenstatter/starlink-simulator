@@ -5,15 +5,17 @@
 <script setup>
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { onMounted } from "vue";
+import { onMounted, nextTick } from "vue";
 
 onMounted(() => {
-  const map = L.map("map").setView([48.26248741852677, 11.668814364233569], 8.5);
+    nextTick(() => {
+        const map = L.map("map").setView([48.26248741852677, 11.668814364233569], 8.5);
 
-  L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
-    attribution:
-      '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map);
+        L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
+            attribution:
+            '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(map);
+    })
 });
 </script>
 
