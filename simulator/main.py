@@ -36,7 +36,10 @@ def connect_handler():
 @io.on("disconnect")
 def disconnect_handler():
     flags["running"] = False
-    del connections[request.sid]
+    try:
+        del connections[request.sid]
+    except KeyError:
+        pass
         
 @io.on("join_constellation")
 def join_constellation(room):

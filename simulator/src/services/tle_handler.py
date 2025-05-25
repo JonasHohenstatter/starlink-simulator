@@ -6,6 +6,9 @@ import os
 import requests
 import time
 from pathlib import Path
+import re
+
+from sgp4.api import SatrecArray, Satrec
 
 def download_file(url, output):
     response = requests.get(url)
@@ -27,3 +30,17 @@ def fetch_tle(constellation):
         return tle.read()
     url = get_tle_url(constellation)
     return download_file(url, path)
+
+def get_satrec_array(constellation: str):
+    """returns a SatRecArray for a given constellation name"""
+    tle = fetch_tle(constellation)     
+    tle_list = re.findall(r"(?:.+\n)?1 .+\n2 .+", tle)
+    satellites = []
+    names = []
+    for element in tle_list:
+        lines = element.split("\n")
+        names.append(lines[0].strip())
+        u = lines[1]
+        w = lines[2]
+        satellites.append(Satrec.twoline2rv(u, w))
+    return SatrecArray(satellites), names
