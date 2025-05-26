@@ -6,6 +6,6 @@ export default defineConfig({
   plugins: [vue()],
   build: {
     outDir: '../simulator/static',
-    base: './static/'
+    base: '/static/'
   }
 })
