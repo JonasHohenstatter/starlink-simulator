@@ -2,8 +2,6 @@ import math
 import numpy as np
 from datetime import datetime, timezone
 
-print(__file__)
-
 def get_gast(JD):
     """Implemented after: https://aa.usno.navy.mil/faq/GAST"""
     T = (JD - 2451545.0) / 36525

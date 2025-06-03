@@ -9,7 +9,7 @@ def loop(flags, connections, io):
         constellations = get_active_constellations(connections)
         for constellation in constellations:
             io.emit("constellation_update", get_positions(constellation, datetime.now(timezone.utc), "latlon"), to=constellation)
-        io.sleep(1)
+        io.sleep(0.5)
     
 def get_active_constellations(connections):
     constellations = []

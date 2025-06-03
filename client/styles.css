@@ -1,0 +1,33 @@
+#map {
+    width: 100vh;
+    height: 98.5vh
+}
+
+.leaflet-tile {
+  filter: brightness(60%) !important;
+}
+
+html {
+    background-color: #072140;
+    color: white;
+    overflow-y: hidden
+}
+
+.sim-container {
+    display: flex;
+    overflow: hidden
+}
+
+* {
+    box-sizing: border-box;
+    
+}
+
+.divider {
+    width: 1px;
+    background-color:#0065bd;
+    margin-right: 5px;
+    margin-left: 5px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}

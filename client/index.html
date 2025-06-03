@@ -2,12 +2,31 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LEO Constellation Simulator</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+        <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+        
+        <link rel="stylesheet" href="client/styles.css"/>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <body>
+        <div class="sim-container">
+            <div class="map-container">
+              <div id="map"></div>
+            </div>
+            <div class="divider"></div>
+            <div>
+              <label for="constellationSelect">Select Constellation:</label>
+              <select id="constellationSelect">
+                <option value="starlink">Starlink</option>
+                <option value="oneweb">OneWeb</option>
+                <option value="iridium">Iridium</option>
+                <option value="kuiper">Kuiper</option>
+              </select>
+              <button id="dishBtn">Place Home Dish</button>
+            </div>
+        </div>
+        
   </body>
+  <script src="client/index.js"></script>
 </html>

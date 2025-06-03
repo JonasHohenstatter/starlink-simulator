@@ -14,7 +14,7 @@ from src.services.event_loop import loop
 from flask import request
 from src.models.users import UserData
 
-app = Flask(__name__, static_folder="static")
+app = Flask(__name__, static_folder="client")
 CORS(app)
 flags = {"running" : False}
 connections = {}
@@ -47,4 +47,4 @@ def join_constellation(room):
     join_room(room)
 
 if __name__ == '__main__':
-    io.run(app, port=os.environ.get("PORT", 1234))
+    io.run(app, port=os.environ.get("PORT", 1234), debug=True)
