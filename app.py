@@ -9,7 +9,7 @@ from flask import Flask, send_from_directory
 from flask_socketio import SocketIO
 from flask_cors import CORS
 import os
-from flask_socketio import join_room
+from flask_socketio import join_room, leave_room
 from src.services.event_loop import loop
 from flask import request
 from src.models.users import UserData
@@ -29,6 +29,7 @@ io = SocketIO(app , cors_allowed_origins="*")
 
 @io.on("connect")
 def connect_handler():
+    connections[request.sid] = UserData("starlink")
     if not flags["running"]:
         flags["running"] = True
         io.start_background_task(loop, flags, connections, io)
@@ -40,10 +41,15 @@ def disconnect_handler():
         del connections[request.sid]
     except KeyError:
         pass
+    
+@io.on("dish_update")
+def dish_update(payload):
+    connections[request.sid].set_dish(payload)
         
 @io.on("join_constellation")
 def join_constellation(room):
-    connections[request.sid] = UserData(room)
+    leave_room(request.sid, connections[request.sid].get_constellation())
+    connections[request.sid].set_constellation(room)
     join_room(room)
 
 if __name__ == '__main__':

@@ -8,23 +8,56 @@
         
         <link rel="stylesheet" href="client/styles.css"/>
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+        
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/leaflet.geodesic"></script>
     <body>
         <div class="sim-container">
             <div class="map-container">
-              <div id="map"></div>
+              <div id="map" style="height: 100vh; width: 100vh"></div>
             </div>
-            <div class="divider"></div>
-            <div>
-              <label for="constellationSelect">Select Constellation:</label>
-              <select id="constellationSelect">
-                <option value="starlink">Starlink</option>
-                <option value="oneweb">OneWeb</option>
-                <option value="iridium">Iridium</option>
-                <option value="kuiper">Kuiper</option>
-              </select>
-              <button id="dishBtn">Place Home Dish</button>
+            <div class="divider bg-tumblue"></div>
+            <div class="controls-container">
+              <h2 class="website-heading">Real-Time LEO Constellation Simulator</h1>
+              <div class="horizontal-divider bg-tumblue"></div>
+              <div>
+                <form id="constellation_form" class="form-grid">
+                  
+                  <h4 class="section-heading">Constellation
+                  </h4>
+                  <div>
+                    <button class="update-button" type="submit">Update</button>
+                  </div>
+
+                  <label for="constellationSelect">Select Constellation:</label>
+                  <select id="constellationSelect" class="form-el">
+                    <option value="starlink">Starlink</option>
+                    <option value="oneweb">OneWeb</option>
+                    <option value="iridium">Iridium</option>
+                    <option value="kuiper">Kuiper</option>
+                  </select>
+
+                </form>
+              </div>
+              <div class="horizontal-divider bg-tumblue"></div>
+              <div>
+                <form id="dish_form" class="form-grid">
+
+                  <h4 class="section-heading">Home Dish</h4>
+                  <div>
+                    <button class="update-button" type="submit">Update</button>
+                  </div>
+                  
+                  <label>Elevation:</label>
+                  <span><input id="input_elevation" class="form-el" value="25" type="number" min="10" max="90" >°</span>
+
+                </form>
+              </div>
+              <div class="horizontal-divider bg-tumblue"></div>
             </div>
+        </div>
+        <div id="controls">
+          <button  class="control-button" id="homeDishBtn">🏠</button>
         </div>
         
   </body>

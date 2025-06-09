@@ -1,21 +1,44 @@
 const socket = io()
 
-let constell = ""
+let placeDish = false;
+const dishBtn = document.getElementById('homeDishBtn');
+const markers = {};
+
+const globe = L.map("map", {worldCopyJump: false}).setView([0,0], 2);
+L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {noWrap: true, minZoom: 2, preferCanvas: true}).addTo(globe);
+var myRenderer = L.canvas({ padding: 0.5 });
+const mapDomElement = document.getElementById("map")
+
+const ButtonControl = L.Control.extend({
+  options: {
+    position: 'topright'
+  },
+
+  onAdd: function () {
+    const el = document.getElementById('controls');
+    L.DomEvent.disableClickPropagation(el);
+    return el;
+  }
+});
+
+globe.addControl(new ButtonControl());
 
 function connect(constellation) {
     socket.emit("join_constellation", constellation);
-    constell = constellation
+}
+
+function openMarkerPopup(marker) {
+    if(!placeDish) {
+        marker.openPopup()
+    }
+}
+
+function getRadius(height, elevation) {
+    const t = height * Math.tan((90 - elevation) * (Math.PI / 180));
+    return t
 }
 
 connect("starlink");
-
-
-const markers = {};
-
-const startcoordinates = [48.26248741852677, 11.668814364233569];
-const globe = L.map("map", {worldCopyJump: false}).setView([0,0], 2);
-
-L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {noWrap: true, minZoom: 2}).addTo(globe);
 
 socket.on("constellation_update", (data) => {
     let sats = []
@@ -25,19 +48,22 @@ socket.on("constellation_update", (data) => {
             try {
                 if (markers[sat.name] != undefined) {
                     const marker = markers[sat.name];
-                    marker.setLatLng([sat.lat, sat.lon]);
-                    marker.setPopupContent(`<b>${sat.name}</b><br>Lat: ${sat.lat.toFixed(3)}<br>Lon: ${sat.lon.toFixed(3)}<br>alt: ${sat.alt}`);
+                    if(sat.lat != null) {
+                        marker.setLatLng([sat.lat, sat.lon]);
+                        marker.setPopupContent(`<b>${sat.name}</b><br>Lat: ${sat.lat.toFixed(3)}<br>Lon: ${sat.lon.toFixed(3)}<br>alt: ${sat.alt} km`);
+                    }
                 } else {
                     if(sat.lat != null){
-                        markers[sat.name] = L.circleMarker([sat.lat, sat.lon], {
-                            radius: 0.7, color: "red", opacity: 1
-                        }).addTo(globe).bindPopup(`<b>${sat.name}</b> <br>Lat: ${sat.lat.toFixed(3)} <br>Lon: ${sat.lon.toFixed(3)} <br>alt: ${sat.alt}`)
+                        const marker = L.circleMarker([sat.lat, sat.lon], {
+                            radius: 0.7, color: "red", opacity: 1, renderer: myRenderer
+                        }).addTo(globe).bindPopup(`<b>${sat.name}</b> <br>Lat: ${sat.lat.toFixed(3)} <br>Lon: ${sat.lon.toFixed(3)} <br>alt: ${sat.alt} km`) 
+                        marker.off("click")
+                        marker.on("click", () => openMarkerPopup(marker))
+                        markers[sat.name] = marker
                     }
                 }
             }
-            catch (error){
-                console.log(error)
-            }
+            catch (error){ }
         }
     const toRemove = Object.keys(markers).filter(el => !sats.includes(el))
     toRemove.forEach(el => {
@@ -46,18 +72,67 @@ socket.on("constellation_update", (data) => {
     })
 })
 
-const selector = document.getElementById('constellationSelect');
 
-selector.addEventListener('change', (e) => {
-    const selected = e.target.value;
-    console.log(selected)
-    connect(selected);
-});
+let dish = undefined
+let homeCircle = undefined
+let elevation = 25
+let path = undefined
 
-const dishBtn = document.getElementById("dishBtn");
-let placeDish = false;
+function updateHomeCircle(){
+    const dish_radius = getRadius(550, elevation) * 1000;
+    homeCircle.setRadius(dish_radius);
+    const pos = dish.getLatLng();
+    socket.emit("dish_update", {
+        lat: pos.lat,
+        lon: pos.lng,
+        elevation: elevation
+    })
+}
 
-dishBtn.addEventListener("click", () => {
-  placeDish = !placeDish
-  dishBtn.innerHTML = placeDish ? "Cancel Placement" : "Place Home Dish";
-});
+dishBtn.addEventListener('click', (e) => {
+    placeDish = !placeDish
+    dishBtn.classList.toggle("toggled")
+})
+
+globe.on("click", (e) => {
+    if(placeDish) {
+        if(dish != undefined) {
+            dish.remove()
+            homeCircle.remove()
+        }
+        dish = L.circleMarker(e.latlng, {radius: 0.7, color: "blue", opacity: 1}).addTo(globe).bindPopup("Home")        
+        homeCirclePosition = e.latlng
+        homeCircle = new L.GeodesicCircle(e.latlng, {
+            interactive: false
+        }).off("click").addTo(globe);   
+        updateHomeCircle()
+    }
+})
+
+document.getElementById("constellation_form").addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const constellation = document.getElementById("constellationSelect");
+    connect(constellation.value);
+})
+
+document.getElementById("dish_form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    
+    const elevation_input = document.getElementById("input_elevation");
+    elevation = parseInt(elevation_input.value, 10);
+    updateHomeCircle();
+})
+
+socket.on("path_update", (data) => {
+    const latlngs = [dish.getLatLng()]
+    data.forEach(sat => {
+        latlngs.push(markers[sat].getLatLng())
+    });
+    if(path == undefined) {
+        path = L.polyline(latlngs, {color: "white"}).addTo(globe);
+    }
+    else {
+        path.setLatLngs(latlngs)
+    }
+})

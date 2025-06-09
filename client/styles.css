@@ -1,10 +1,6 @@
-#map {
-    width: 100vh;
-    height: 98.5vh
-}
-
-.leaflet-tile {
-  filter: brightness(60%) !important;
+* {
+    box-sizing: border-box;
+    
 }
 
 html {
@@ -13,21 +9,85 @@ html {
     overflow-y: hidden
 }
 
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0
+}
+
+.control-button {
+    height: 34px;
+    width: 34px;
+    cursor: pointer;
+    border-radius: 1px;
+    background-color: red;
+}
+
+.toggled {
+    background-color: green;
+}
+
+.website-heading {
+    margin: 0;
+    width: 100%;
+}
+
+.leaflet-tile {
+  filter: brightness(60%) !important;
+}
+
 .sim-container {
     display: flex;
     overflow: hidden
 }
 
-* {
-    box-sizing: border-box;
-    
+.controls-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1vh;
+    width: 100%;
+    margin: 10px
 }
 
 .divider {
-    width: 1px;
+    width: 2px;
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.bg-tumblue {
     background-color:#0065bd;
-    margin-right: 5px;
-    margin-left: 5px;
-    margin-top: 2px;
-    margin-bottom: 2px;
+}
+
+.tumblue {
+    color: #0065bd;
+}
+
+.horizontal-divider {
+    height: 1px;
+    width: 35%;
+    margin-bottom: 0.5vh;
+    margin-top: 0.5vh
+}
+
+.section-heading {
+    margin: 0;
+    margin-bottom: 1vh;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: auto auto;
+    width: 50%;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5vh
+}
+
+.update-button {
+    width: 5vw
+}
+
+.form-el {
+    width: 5vw;
+
 }
