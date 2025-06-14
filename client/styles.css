@@ -78,16 +78,16 @@ body {
 .form-grid {
     display: grid;
     grid-template-columns: auto auto;
-    width: 50%;
+    width: 80%;
     grid-template-columns: 1fr 1fr;
     gap: 0.5vh
 }
 
 .update-button {
-    width: 5vw
+    width: 7vw
 }
 
 .form-el {
-    width: 5vw;
+    width: 7vw;
 
 }

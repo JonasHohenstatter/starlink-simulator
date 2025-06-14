@@ -41,6 +41,7 @@ function getRadius(height, elevation) {
 connect("starlink");
 
 socket.on("constellation_update", (data) => {
+    console.log(data);
     let sats = []
     for(let i = 0; i < data.length; i++) {
             let sat = data[i];    
@@ -72,14 +73,13 @@ socket.on("constellation_update", (data) => {
     })
 })
 
-
 let dish = undefined
 let homeCircle = undefined
 let elevation = 25
 let path = undefined
 
 function updateHomeCircle(){
-    const dish_radius = getRadius(550, elevation) * 1000;
+    const dish_radius = getRadius(700, elevation) * 1000;
     homeCircle.setRadius(dish_radius);
     const pos = dish.getLatLng();
     socket.emit("dish_update", {
@@ -126,9 +126,11 @@ document.getElementById("dish_form").addEventListener("submit", (e) => {
 
 socket.on("path_update", (data) => {
     const latlngs = [dish.getLatLng()]
+    console.log(data)
     data.forEach(sat => {
         latlngs.push(markers[sat].getLatLng())
     });
+    
     if(path == undefined) {
         path = L.polyline(latlngs, {color: "white"}).addTo(globe);
     }

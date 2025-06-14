@@ -48,8 +48,9 @@ def dish_update(payload):
         
 @io.on("join_constellation")
 def join_constellation(room):
-    leave_room(request.sid, connections[request.sid].get_constellation())
+    leave_room(connections[request.sid].get_constellation())
     connections[request.sid].set_constellation(room)
+    
     join_room(room)
 
 if __name__ == '__main__':

@@ -17,33 +17,17 @@ def get_ecef(constellation: SatrecArray, jd):
     ])
     return reduced_r @ rotation_matrix.T
 
-def get_latlon(constellation: SatrecArray, jd):
+def get_latlon(ecef_coords):
     """Calculation of all coordinates of a constellation at a given julian time in latitutde and longitude"""
-    ecef_coords = get_ecef(constellation, jd)
     ecef = pyproj.CRS.from_epsg(4978)
     latlon = pyproj.CRS.from_epsg(4326)
     transformer = pyproj.Transformer.from_crs(ecef, latlon, always_xy=True)
     positions = np.apply_along_axis(lambda x: transformer.transform(x[0] * 1000, x[1] * 1000, x[2] * 1000), 1, ecef_coords)
     return positions
 
-def get_positions(constellation: str, utctime: datetime, coordinate_type="latlon"):
-    const, names = get_satrec_array(constellation)
+def get_positions(constellation: str, utctime: datetime):
+    con, names = get_satrec_array(constellation)
     """Formatting of all needed coordinate types:"""
-    if coordinate_type == "latlon":
-        pos = get_latlon(const, get_julian(utctime)).tolist()
-        return [{
-            "name" : names[i].strip(), 
-            "lon": pos[i][0] if not np.isnan(pos[i][0]) else None, 
-            "lat" : pos[i][1] if not np.isnan(pos[i][1]) else None , 
-            "alt" : round(pos[i][2] / 1000, 3) if not np.isnan(pos[i][2]) else None
-        } for i in range(len(names))]
-    elif coordinate_type == "ecef":
-        pos = get_ecef(const, get_julian(utctime)).tolist()
-        return [{
-            "name" : names[i].strip(), 
-            "x": pos[i][0] if not np.isnan(pos[i][0]) else None, 
-            "y" : pos[i][1] if not np.isnan(pos[i][1]) else None,
-            "z" : pos[i][2] if not np.isnan(pos[i][1]) else None
-        } for i in range(len(names)) ]
-    else:
-        return None
+    ecef_coords = get_ecef(con, get_julian(utctime))
+    latlon_coords = get_latlon(ecef_coords)
+    return {"names": names, "ecef_coords" : ecef_coords, "latlon_coords" : latlon_coords}
