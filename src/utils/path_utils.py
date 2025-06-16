@@ -31,3 +31,4 @@ def get_available_satellites(dish, positions, min_elevation_deg):
     elevation = 90 - np.degrees(angle)
     mask = elevation >= min_elevation_deg - 5
     return mask
+

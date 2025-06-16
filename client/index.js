@@ -1,7 +1,10 @@
 const socket = io()
 
 let placeDish = false;
+let placeGs = false;
 const dishBtn = document.getElementById('homeDishBtn');
+const gsBtn = document.getElementById('gsBtn');
+
 const markers = {};
 
 const globe = L.map("map", {worldCopyJump: false}).setView([0,0], 2);
@@ -41,7 +44,6 @@ function getRadius(height, elevation) {
 connect("starlink");
 
 socket.on("constellation_update", (data) => {
-    console.log(data);
     let sats = []
     for(let i = 0; i < data.length; i++) {
             let sat = data[i];    
@@ -94,6 +96,13 @@ dishBtn.addEventListener('click', (e) => {
     dishBtn.classList.toggle("toggled")
 })
 
+gsBtn.addEventListener('click', (e) => {
+    placeGs = !placeGs
+    gsBtn.classList.toggle("toggled")
+})
+
+let groundStations = [];
+
 globe.on("click", (e) => {
     if(placeDish) {
         if(dish != undefined) {
@@ -101,11 +110,16 @@ globe.on("click", (e) => {
             homeCircle.remove()
         }
         dish = L.circleMarker(e.latlng, {radius: 0.7, color: "blue", opacity: 1}).addTo(globe).bindPopup("Home")        
-        homeCirclePosition = e.latlng
         homeCircle = new L.GeodesicCircle(e.latlng, {
             interactive: false
         }).off("click").addTo(globe);   
         updateHomeCircle()
+    }
+    else if(placeGs) {
+        groundStations.push(L.circleMarker(e.latlng, {radius: 1, color: "purple", opacity: 1}).addTo(globe));
+        socket.emit("gs_update", {
+            stations: groundStations.map((el) => el.getLatLng())
+        })
     }
 })
 
@@ -125,16 +139,10 @@ document.getElementById("dish_form").addEventListener("submit", (e) => {
 })
 
 socket.on("path_update", (data) => {
-    const latlngs = [dish.getLatLng()]
-    console.log(data)
-    data.forEach(sat => {
-        latlngs.push(markers[sat].getLatLng())
-    });
-    
     if(path == undefined) {
-        path = L.polyline(latlngs, {color: "white"}).addTo(globe);
+        path = L.polyline(data, {color: "white"}).addTo(globe);
     }
     else {
-        path.setLatLngs(latlngs)
+        path.setLatLngs(data)
     }
 })

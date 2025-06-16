@@ -45,13 +45,17 @@ def disconnect_handler():
 @io.on("dish_update")
 def dish_update(payload):
     connections[request.sid].set_dish(payload)
+    
+@io.on("gs_update")
+def gs_update(payload):
+    connections[request.sid].set_gs(payload["stations"])
         
 @io.on("join_constellation")
 def join_constellation(room):
     leave_room(connections[request.sid].get_constellation())
     connections[request.sid].set_constellation(room)
-    
     join_room(room)
+
 
 if __name__ == '__main__':
     io.run(app, port=os.environ.get("PORT", 1234), debug=True)
