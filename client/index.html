@@ -26,7 +26,7 @@
                   <h4 class="section-heading">Constellation
                   </h4>
                   <div>
-                    <button class="update-button" type="submit">Update</button>
+                    <button class="form-el" type="submit">Update</button>
                   </div>
 
                   <label for="constellationSelect">Select Constellation:</label>
@@ -45,7 +45,7 @@
 
                   <h4 class="section-heading">Home Dish</h4>
                   <div>
-                    <button class="update-button" type="submit">Update</button>
+                    <button class="form-el" type="submit">Update</button>
                   </div>
                   
                   <label>Elevation:</label>
@@ -55,29 +55,21 @@
               </div>
               <div class="horizontal-divider bg-tumblue"></div>
               <div>
-                <form id="dish_form" class="form-grid">
+                <form id="gs_form" class="form-grid">
 
                   <h4 class="section-heading">Ground stations</h4>
                   <div>
-                    <button class="update-button" type="submit">Update</button>
+                    <button class="form-el" type="submit">Update</button>
                   </div>
-                  
-                  <label>Load from CSV:</label>
-                  <input id="input_elevation" class="form-el" type="file">
 
-                  <label for="constellationSelect">Load config:</label>
-                  <select id="constellationSelect" class="form-el">
-                    <option value="starlink">Starlink</option>
-                    <option value="oneweb">OneWeb</option>
-                    <option value="iridium">Iridium</option>
-                    <option value="kuiper">Kuiper</option>
+                  <label for="gsSelect">Load config:</label>
+                  <select id="gsSelect" class="form-el">
+                    <option value="">None</option>
+                    <option value="starlink">Starlink GS</option>
                   </select>
-                  
-                  <label>Amount:</label>
-                  <button class="form-el">0</button>
 
                   <label>Remove all:</label>
-                  <button class="form-el">Delete</button>
+                  <button class="form-el" id="remove_all_gs">Delete</button>
 
                 </form>
               </div>

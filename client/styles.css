@@ -72,7 +72,6 @@ body {
 
 .section-heading {
     margin: 0;
-    margin-bottom: 1vh;
 }
 
 .form-grid {
@@ -83,11 +82,11 @@ body {
     gap: 0.5vh
 }
 
-.update-button {
-    width: 7vw
-}
-
 .form-el {
     width: 7vw;
+    padding: 1px;
+}
 
+label{
+    padding: 1px;
 }

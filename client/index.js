@@ -27,7 +27,7 @@ const ButtonControl = L.Control.extend({
 globe.addControl(new ButtonControl());
 
 function connect(constellation) {
-    socket.emit("join_constellation", constellation);
+    socket.emit("ctrl_join_constellation", constellation);
 }
 
 function openMarkerPopup(marker) {
@@ -52,14 +52,14 @@ socket.on("constellation_update", (data) => {
                 if (markers[sat.name] != undefined) {
                     const marker = markers[sat.name];
                     if(sat.lat != null) {
-                        marker.setLatLng([sat.lat, sat.lon]);
-                        marker.setPopupContent(`<b>${sat.name}</b><br>Lat: ${sat.lat.toFixed(3)}<br>Lon: ${sat.lon.toFixed(3)}<br>alt: ${sat.alt} km`);
+                        marker.setLatLng([sat.lat, sat.lng]);
+                        marker.setPopupContent(`<b>${sat.name}</b><br>Lat: ${sat.lat.toFixed(3)}<br>lng: ${sat.lng.toFixed(3)}<br>alt: ${sat.alt} km`);
                     }
                 } else {
                     if(sat.lat != null){
-                        const marker = L.circleMarker([sat.lat, sat.lon], {
+                        const marker = L.circleMarker([sat.lat, sat.lng], {
                             radius: 0.7, color: "red", opacity: 1, renderer: myRenderer
-                        }).addTo(globe).bindPopup(`<b>${sat.name}</b> <br>Lat: ${sat.lat.toFixed(3)} <br>Lon: ${sat.lon.toFixed(3)} <br>alt: ${sat.alt} km`) 
+                        }).addTo(globe).bindPopup(`<b>${sat.name}</b> <br>Lat: ${sat.lat.toFixed(3)} <br>lng: ${sat.lng.toFixed(3)} <br>alt: ${sat.alt} km`) 
                         marker.off("click")
                         marker.on("click", () => openMarkerPopup(marker))
                         markers[sat.name] = marker
@@ -84,43 +84,61 @@ function updateHomeCircle(){
     const dish_radius = getRadius(700, elevation) * 1000;
     homeCircle.setRadius(dish_radius);
     const pos = dish.getLatLng();
-    socket.emit("dish_update", {
+    socket.emit("ctrl_dish_update", {
         lat: pos.lat,
-        lon: pos.lng,
+        lng: pos.lng,
         elevation: elevation
     })
 }
 
 dishBtn.addEventListener('click', (e) => {
-    placeDish = !placeDish
-    dishBtn.classList.toggle("toggled")
+    placeDish = !placeDish;
+    dishBtn.classList.toggle("toggled");
+    if(placeGs) {
+        placeGs = false;
+        gsBtn.classList.toggle("toggled");
+    }
 })
 
 gsBtn.addEventListener('click', (e) => {
     placeGs = !placeGs
     gsBtn.classList.toggle("toggled")
+    if(placeDish) {
+        placeDish = false;
+        dishBtn.classList.toggle("toggled");
+    }
 })
 
 let groundStations = [];
 
-globe.on("click", (e) => {
+globe.on("mousedown", (e) => {
     if(placeDish) {
         if(dish != undefined) {
             dish.remove()
             homeCircle.remove()
         }
-        dish = L.circleMarker(e.latlng, {radius: 0.7, color: "blue", opacity: 1}).addTo(globe).bindPopup("Home")        
+        dish = L.circleMarker(e.latlng, {radius: 0.7, color: "blue", opacity: 1}).addTo(globe).bindPopup("Home");       
         homeCircle = new L.GeodesicCircle(e.latlng, {
             interactive: false
         }).off("click").addTo(globe);   
-        updateHomeCircle()
+        updateHomeCircle();
     }
     else if(placeGs) {
         groundStations.push(L.circleMarker(e.latlng, {radius: 1, color: "purple", opacity: 1}).addTo(globe));
-        socket.emit("gs_update", {
+        socket.emit("ctrl_gs_update", {
             stations: groundStations.map((el) => el.getLatLng())
         })
     }
+})
+
+document.getElementById("remove_all_gs").addEventListener("click", (e) => {
+    groundStations.forEach((gs) => {
+        gs.remove();
+    })
+    groundStations = [];
+    socket.emit("ctrl_gs_update", {
+        stations: []
+    })
 })
 
 document.getElementById("constellation_form").addEventListener("submit", (e) => {
@@ -136,6 +154,21 @@ document.getElementById("dish_form").addEventListener("submit", (e) => {
     const elevation_input = document.getElementById("input_elevation");
     elevation = parseInt(elevation_input.value, 10);
     updateHomeCircle();
+})
+
+document.getElementById("gs_form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    
+    const gs_config = document.getElementById("gsSelect");
+    if(gs_config.value != "") {
+        socket.emit("ctrl_gs_load_config", {"configname" : gs_config.value})
+    }
+})
+
+socket.on("gs_update", (data) => {
+    data.forEach((el) => {
+        groundStations.push(L.circleMarker([el.lat, el.lng], {radius: 1, color: "purple", opacity: 1}).addTo(globe));
+    })
 })
 
 socket.on("path_update", (data) => {

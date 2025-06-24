@@ -17,11 +17,11 @@ def get_ecef(constellation: SatrecArray, jd):
     ])
     return reduced_r @ rotation_matrix.T
 
-def get_latlon(ecef_coords):
+def get_latlng(ecef_coords):
     """Calculation of all coordinates of a constellation at a given julian time in latitutde and longitude"""
     ecef = pyproj.CRS.from_epsg(4978)
-    latlon = pyproj.CRS.from_epsg(4326)
-    transformer = pyproj.Transformer.from_crs(ecef, latlon, always_xy=True)
+    latlng = pyproj.CRS.from_epsg(4326)
+    transformer = pyproj.Transformer.from_crs(ecef, latlng, always_xy=True)
     positions = np.apply_along_axis(lambda x: transformer.transform(x[0] * 1000, x[1] * 1000, x[2] * 1000), 1, ecef_coords)
     return positions
 
@@ -29,5 +29,5 @@ def get_positions(constellation: str, utctime: datetime):
     con, names = get_satrec_array(constellation)
     """Formatting of all needed coordinate types:"""
     ecef_coords = get_ecef(con, get_julian(utctime))
-    latlon_coords = get_latlon(ecef_coords)
-    return {"names": names, "ecef_coords" : ecef_coords, "latlon_coords" : latlon_coords}
+    latlng_coords = get_latlng(ecef_coords)
+    return {"names": names, "ecef_coords" : ecef_coords, "latlng_coords" : latlng_coords}
