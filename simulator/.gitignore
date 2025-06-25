@@ -2,3 +2,4 @@ __pycache__/
 **/__pycache__/
 *.py[cod]
 data/TLEs/*.txt
+src/figures/*.png

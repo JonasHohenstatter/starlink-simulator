@@ -31,6 +31,7 @@ io = SocketIO(app , cors_allowed_origins="*")
 @io.on("connect")
 def connect_handler():
     connections[request.sid] = UserData("starlink")
+    connections[request.sid].set_sid(request.sid)
     if not flags["running"]:
         flags["running"] = True
         io.start_background_task(position_loop, flags, connections, io)

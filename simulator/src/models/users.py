@@ -6,6 +6,12 @@ class UserData:
         self.gs = []
         self.descriptor_path = []
         self.flags = {}
+        self.saved_measurements = {}
+        self.sid = 0
+    def set_sid(self, sid):
+        self.sid = sid
+    def get_sid(self):
+        return self.sid
     def get_constellation(self):
         return self.constellation
     def set_constellation(self, constellation):
@@ -41,3 +47,11 @@ class UserData:
         self.flags[flagname] = True
     def remove_flag(self, flagname):
         self.flags[flagname] = False
+    def get_saved_measurements(self):
+        return self.saved_measurements
+    def add_measurements(self, measurements: dict):
+        for field in measurements:
+            if field in self.saved_measurements:
+                self.saved_measurements[field].append(measurements[field])
+            else:
+                self.saved_measurements[field] = [measurements[field]]
