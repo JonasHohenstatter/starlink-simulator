@@ -1,0 +1,1 @@
+Holds all needed scripts to run basic tests for the simulator/emulator setup on the i8 testbed

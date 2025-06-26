@@ -1,0 +1,9 @@
+Flask==2.3.2
+flask_cors==5.0.1
+Flask_SocketIO==5.5.1
+matplotlib==3.6.0
+numpy==1.24.0
+pandas==1.4.4
+pyproj==3.4.0
+Requests==2.32.4
+sgp4==2.16
