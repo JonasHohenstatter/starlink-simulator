@@ -2,7 +2,7 @@ from src.utils.measurement_utils import distance_to_latency, get_path_length
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
+from pathlib import Path
 import random
 
 def update_measurements(connection, path_ecef):
@@ -34,5 +34,5 @@ def generate_latency_graph(connection):
     plt.grid(True)
     plt.ylim(bottom=0) 
 
-    plt.savefig("src/figures/" + connection.get_sid() + ".png")
+    plt.savefig(f"{Path(__file__).resolve().parents[1]}/figures/{connection.get_sid()}.png")
     plt.close()

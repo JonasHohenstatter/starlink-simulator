@@ -74,4 +74,4 @@ def join_constellation(room):
     connections[request.sid].set_flag("update")
 
 if __name__ == '__main__':
-    io.run(app, port=os.environ.get("PORT", 1234), debug=True)
+    io.run(app, port=os.environ.get("PORT", 9898), debug=True)
