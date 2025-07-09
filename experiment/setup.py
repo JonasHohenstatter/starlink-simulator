@@ -15,7 +15,7 @@ def allocate_nodes(nodes, duration):
     try:
         for node in nodes:
             pos.allocations.free(node)
-        pos.allocations.allocate(nodes, duration=5)
+        pos.allocations.allocate(nodes, duration=duration)
     except:
         log.error("unable to allocate nodes")
     
@@ -33,9 +33,9 @@ def setup_emulator(emulator):
     implementation_path = Path(__file__).resolve().parents[1]
     pos.nodes.copy(emulator, implementation_path, IMPLEMENTATION_BASE, recursive=True)
     pos.nodes.bootstrap(emulator)
-    with open("emulator/setup.sh", "rb") as setupfile:
-        caa = pos.commands.launch(emulator, infile=setupfile)
-        print(caa)
+    with open(f"{implementation_path}/experiment/emulator/start.sh", "rb") as setupfile:
+        pos.commands.launch(emulator, infile=setupfile, blocking=False)
+    log.info('simulator started on %s', emulator)
 
 def boot_nodes(nodes, image):
     for node in nodes:
@@ -60,8 +60,6 @@ def main():
         allocate_nodes(nodes, args.duration)
         boot_nodes(nodes, args.image)
     setup_emulator(args.emulator)
-        
 
 if __name__ == "__main__":
-    
     main()

@@ -2,7 +2,7 @@
 
 apt update
 apt install python3-pip
-apt install python3.11-venv
+apt install -y python3-venv
 
 python3 -m venv /home/venv
 source /home/venv/bin/activate
