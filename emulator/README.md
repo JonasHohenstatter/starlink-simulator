@@ -1,1 +1,1 @@
-Holds all emulator logic
+Holds all emulator logic. Based on MoonEm implementation
