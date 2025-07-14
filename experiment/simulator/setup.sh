@@ -5,11 +5,6 @@ set -x
 
 cd /root
 
-
-
-
-# Emulator setup
-
 # install ice ddp package
 rm -rf /root/ice
 rm -rf /root/venv
@@ -51,4 +46,3 @@ python3 /root/moongen/libmoon/deps/dpdk/usertools/dpdk-devbind.py --bind=igb_uio
 # Build Moonem
 cd /root/implementation/emulator
 ./build.sh
-

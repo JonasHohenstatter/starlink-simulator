@@ -35,10 +35,17 @@ def setup_emulator(emulator):
     pos.nodes.bootstrap(emulator)
     with open(f"{IMPLEMENTATION_PATH}/experiment/simulator/setup.sh", "rb") as setupfile:
         pos.commands.launch(emulator, infile=setupfile, blocking=True)
-    log.info('Setup of %s completed!', emulator)
+    log.info('Emulator Setup on %s completed!', emulator)
+
+def setup_loadgen(loadgen):
+    pos.nodes.copy(loadgen, IMPLEMENTATION_PATH, IMPLEMENTATION_BASE, recursive=True)
+    pos.nodes.bootstrap(loadgen)
+    with open(f"{IMPLEMENTATION_PATH}/experiment/loadgen/setup.sh", "rb") as setupfile:
+        pos.commands.launch(loadgen, infile=setupfile, blocking=True)
+    log.info('Loadgen Setup on %s completed!', loadgen)
     
 def start_emulator(emulator):
-    with open(f"{IMPLEMENTATION_PATH}/experiment/simulator/start.sh", "rb") as setupfile:
+    with open(f"{IMPLEMENTATION_PATH}/experiment/simulator/experiment.sh", "rb") as setupfile:
         pos.commands.launch(emulator, infile=setupfile, blocking=True)
     log.info('Started Simulator on %s', emulator)
 
@@ -64,7 +71,8 @@ def main():
         nodes = [args.emulator, args.loadgen]
         allocate_nodes(nodes, args.duration)
         boot_nodes(nodes, args.image)
-        setup_emulator(args.emulator)
+    setup_emulator(args.emulator)
+    setup_loadgen(args.loadgen)
     start_emulator(args.emulator)
 
 if __name__ == "__main__":
