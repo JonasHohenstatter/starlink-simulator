@@ -34,6 +34,8 @@ function configure(parser)
 	parser:option("-t --threads", "Number of threads to use per direction. Cannot be used when using hardware delay functionality!"):default(1):convert(tonumber)
 	parser:flag("-u --unidirectional", "Only forward traffic in one direction (from dev1 to dev2)")
 	parser:flag("--stats", "Show stats output")
+
+	parser:option("-p --port", "Port for the Socket to listen on (Default: 55555)"):default(55555):convert(tonumber)
 end
 
 ffi.cdef[[
@@ -42,6 +44,13 @@ ffi.cdef[[
 		uint64_t rate;
 		uint64_t capacity;
 		uint64_t loss_seed;
+		float loss;
+	};
+
+	struct connection_data {
+		uint64_t timestamp;
+		uint64_t delay;
+		uint64_t capacity;
 		float loss;
 	};
 
@@ -56,6 +65,8 @@ ffi.cdef[[
 	void sw_receiver_loop_rate_token_bucket(int port_id, int queue_id, struct rte_ring* packet_ring, struct moonem_config config);
 	void sw_receiver_loop_rate_leaky_bucket(int port_id, int queue_id, struct rte_ring* packet_ring, struct moonem_config config);
 	void sw_transmitter_loop_delay(int port_id, int queue_id, struct rte_ring* packet_ring, struct moonem_config config);
+
+	void receive_connection_data_loop(int port);
 ]]
 
 function master(args)
@@ -171,6 +182,7 @@ function master(args)
 		local packet_ring_1 = pipe:newPacketRing(buf_count_dev1)
 		mg.startTask("sw_rx_loop", dev1:getRxQueue(i), packet_ring_1, args, nil, dev1)
 		mg.startTask("sw_tx_loop", dev2:getRxQueue(i), packet_ring_1, args, nil, dev2)
+		mg.startTask("sw_api_loop", args)
 		if not args.unidirectional then
 			local packet_ring_2 = pipe:newPacketRing(buf_count_dev2)
 			mg.startTask("sw_rx_loop", dev2:getRxQueue(i), packet_ring_2, args, nil, dev2)
@@ -214,10 +226,14 @@ function sw_rx_loop(queue, packet_ring, args, txQueue)
 	else
 		rx_function = moonem.sw_receiver_loop_rate_token_bucket
 	end
-
+	
 	rx_function(queue.dev.id, queue.qid, packet_ring.ring, args.config_struct[0])
 end
 
 function sw_tx_loop(queue, packet_ring, args, txQueue)
 	moonem.sw_transmitter_loop_delay(queue.dev.id, queue.qid, packet_ring.ring, args.config_struct[0])
+end
+
+function sw_api_loop(args)
+	moonem.receive_connection_data_loop(args.port)
 end

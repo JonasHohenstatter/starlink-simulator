@@ -11,9 +11,13 @@ apt-get install -y python3-venv python3-pip
 python3 -m venv venv
 source venv/bin/activate
 pip install -r implementation/requirements.txt
-pos_run simulator python3 /root/implementation/simulator/app.py 
+pos_run simulator -- taskset -c 1 python3 /root/implementation/simulator/app.py 
 
 echo "Simulator started"
+
+pos_run delayer -- taskset -c 1 /root/moongen/build/MoonGen /root/moonem/moonem.lua 0 0 --delay $DELAY
+
+echo "delayer started"
 
 pos_sync
 

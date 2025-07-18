@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <limits.h>
+#include <iostream>
 extern "C" {
 	#include "lifecycle.h"
 	#include "timestamping.h"
@@ -62,13 +63,12 @@ extern "C" void sw_receiver_loop_fwd(int port_id_rx, int queue_id_rx, int port_i
 extern "C" void sw_receiver_loop_delay(int port_id, int queue_id, struct rte_ring* packet_ring, struct moonem_config config){
 	uint64_t delay =  rte_get_tsc_hz() * (config.delay / 1000000000.0);
 	const uint64_t loss_value = config.loss * 0xFFFFFFFFFFFFFFFFULL;
-
 	struct rte_mbuf* bufs[BURST_SIZE];
 	struct rte_mbuf* bufs_accept[BURST_SIZE];
 	uint64_t loss_state = config.loss_seed;
-
 	while (is_running(0)) {
 		uint16_t rx = rte_eth_rx_burst(port_id, queue_id, bufs, BURST_SIZE);
+		get_connection_data(1000);
 		if(rx > 0){
 			uint64_t timestamp = rte_rdtsc();
 			if(loss_value > 0){

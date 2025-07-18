@@ -8,9 +8,19 @@ struct moonem_config {
 	float loss;
 };
 
+struct connection_data {
+	uint64_t timestamp;
+	uint64_t delay;
+	uint64_t capacity;
+	float loss;
+};
+
 #define BURST_SIZE 64
+#define CONNECTION_DATA_AMOUNT 10
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
+
+extern "C" float get_connection_data(uint64_t timestamp);
 
 //https://lemire.me/blog/2019/03/19/the-fastest-conventional-random-number-generator-that-can-pass-big-crush/
 static uint64_t wyhash64(uint64_t* state) {
@@ -34,3 +44,5 @@ inline int applyLoss(uint16_t rx, struct rte_mbuf** bufs, struct rte_mbuf** bufs
 	}
 	return accept_index;
 }
+
+

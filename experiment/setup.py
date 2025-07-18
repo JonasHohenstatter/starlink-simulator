@@ -53,6 +53,7 @@ def boot_nodes(nodes, image):
     for node in nodes:
         pos.nodes.image(node, image)
         log.info('%s image setup completed', node)
+        pos.nodes.bootparameters(node, ["iommu=pt"], "")
         pos.nodes.reset(node)
         log.info('%s booted', node)
 
@@ -66,14 +67,18 @@ def main():
     args = parser.parse_args()
 
     setup_logger()
+
     
     if not args.no_boot:
-        nodes = [args.emulator, args.loadgen]
+        if args.emulator == args.loadgen:
+            nodes = [args.emulator]
+        else:
+            nodes = [args.emulator, args.loadgen]
         allocate_nodes(nodes, args.duration)
         boot_nodes(nodes, args.image)
     setup_emulator(args.emulator)
-    setup_loadgen(args.loadgen)
-    start_emulator(args.emulator)
+    #setup_loadgen(args.loadgen)
+    #start_emulator(args.emulator)
 
 if __name__ == "__main__":
     main()
