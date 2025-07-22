@@ -77,7 +77,7 @@ def main():
         allocate_nodes(nodes, args.duration)
         boot_nodes(nodes, args.image)
     setup_emulator(args.emulator)
-    #setup_loadgen(args.loadgen)
+    setup_loadgen(args.loadgen)
     #start_emulator(args.emulator)
 
 if __name__ == "__main__":

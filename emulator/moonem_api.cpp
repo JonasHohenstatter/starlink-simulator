@@ -39,17 +39,29 @@ static void data_receiver(int connection, int amount, connection_data* arr) {
 
 extern "C" void receive_connection_data_loop(int port) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
-    sockaddr_in address;
+    int opt = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
+    sockaddr_in address;
     address.sin_family = AF_INET;
     address.sin_port = htons(port);
     address.sin_addr.s_addr = INADDR_ANY;
 
-    bind(sock, (struct sockaddr*)&address, sizeof(address));
+    
+
+    int b = bind(sock, (struct sockaddr*)&address, sizeof(address));
+    if(b < 0) {
+        std::cerr << "Failed to bind socket: " << strerror(errno) << std::endl;
+        return;
+    }
     listen(sock, 1);
+
+    
     
     while(1) {
+        std::cout << "Listening on port " << port << std::endl;
         int connection = accept(sock, nullptr, nullptr);
+        std::cout << "Accepted connection" << std::endl;
         int amount = 0;
         if(read(connection, &amount, sizeof(amount)) <= 0) {
             break;
@@ -57,20 +69,20 @@ extern "C" void receive_connection_data_loop(int port) {
 
         array_buffer = (connection_data*) malloc(amount * sizeof(connection_data));
         array_use = (connection_data*) malloc(amount * sizeof(connection_data));
-        array_size = amount;
 
         char msg[32];
-        sprintf(msg, "SEND %d", amount);
-        write(connection, msg, sizeof(array_size));
+        int len = sprintf(msg, "SEND %d", amount);
+        write(connection, msg, len);
             
         data_receiver(connection, amount, array_use);
+        array_size = amount;
         array_used_flag.store(true);
 
         while(1) {
             while(!array_used_flag.load());
-            char msg[32];
-            sprintf(msg, "SEND %d", amount);
-            write(connection, msg, sizeof(array_size));
+            char msg[32] = {0};
+            int len = sprintf(msg, "SEND %d", amount);
+            write(connection, msg, len);
             data_receiver(connection, amount, array_buffer);
             array_used_flag.store(false);
         }
@@ -84,11 +96,12 @@ uint64_t cons = 0;
 
 extern "C" float get_connection_data(uint64_t timestamp) {
     std::lock_guard<std::mutex> lock(mutex_);
-    cons++;
-    if(cons > 100000000) {
-        std::cout << "Resetting cons\n";
-        array_used_flag.store(true);
-        cons = 0;
+    if(array_size > 0) {
+        if((timestamp > array_use[array_size - 1].timestamp)) {
+            uint64_t last_end_ts = array_use[array_size - 1].timestamp;
+            memcpy(array_use, array_buffer, array_size * sizeof(connection_data));
+            array_used_flag.store(true);
+        }
     }
     return 0.1;
 }

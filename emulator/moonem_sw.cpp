@@ -60,6 +60,22 @@ extern "C" void sw_receiver_loop_fwd(int port_id_rx, int queue_id_rx, int port_i
 	}
 }
 
+extern "C" void sw_receiver_loop_api(int port_id, int queue_id, struct rte_ring* packet_ring){
+	struct rte_mbuf* bufs[BURST_SIZE];
+	while (is_running(0)) {
+		uint16_t rx = rte_eth_rx_burst(port_id, queue_id, bufs, BURST_SIZE);
+		if(rx > 0){
+			uint64_t timestamp = rte_rdtsc();
+			uint64_t delay = get_connection_data(timestamp);
+			for(int i = 0; i < rx; i++){
+				set_timestamp_dynfield(bufs[i], timestamp + delay);
+				set_burst_size_dynfield(bufs[i], rx-i);
+			}
+			rte_ring_sp_enqueue_bulk(packet_ring, (void**)bufs, rx, NULL);
+		}
+	}
+}
+
 extern "C" void sw_receiver_loop_delay(int port_id, int queue_id, struct rte_ring* packet_ring, struct moonem_config config){
 	uint64_t delay =  rte_get_tsc_hz() * (config.delay / 1000000000.0);
 	const uint64_t loss_value = config.loss * 0xFFFFFFFFFFFFFFFFULL;
@@ -68,9 +84,9 @@ extern "C" void sw_receiver_loop_delay(int port_id, int queue_id, struct rte_rin
 	uint64_t loss_state = config.loss_seed;
 	while (is_running(0)) {
 		uint16_t rx = rte_eth_rx_burst(port_id, queue_id, bufs, BURST_SIZE);
-		get_connection_data(1000);
 		if(rx > 0){
 			uint64_t timestamp = rte_rdtsc();
+			std::cout << timestamp << std::endl;
 			if(loss_value > 0){
 				rx = applyLoss(rx, bufs, bufs_accept, loss_value, &loss_state);
 				for(int i = 0; i < rx; i++){

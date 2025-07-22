@@ -36,6 +36,7 @@ function configure(parser)
 	parser:flag("--stats", "Show stats output")
 
 	parser:option("-p --port", "Port for the Socket to listen on (Default: 55555)"):default(55555):convert(tonumber)
+	parser:flag("--api", "Enable dynamic connection data using sockets")
 end
 
 ffi.cdef[[
@@ -61,6 +62,7 @@ ffi.cdef[[
 	
 	void init_dynfield_burst_size_offset();
 	void sw_receiver_loop_fwd(int port_id_rx, int queue_id_rx, int port_id_tx, int queue_id_tx, struct moonem_config config);
+	void sw_receiver_loop_api(int port_id, int queue_id, struct rte_ring* packet_ring);
 	void sw_receiver_loop_delay(int port_id, int queue_id, struct rte_ring* packet_ring, struct moonem_config config);
 	void sw_receiver_loop_rate_token_bucket(int port_id, int queue_id, struct rte_ring* packet_ring, struct moonem_config config);
 	void sw_receiver_loop_rate_leaky_bucket(int port_id, int queue_id, struct rte_ring* packet_ring, struct moonem_config config);
@@ -135,13 +137,17 @@ function master(args)
 		stats.startStatsTask{dev1, dev2}
 	end
 
+	if args.api then
+		mg.startTask("sw_api_loop", args)
+	end
+
 	-- use software implementation if only loss is selected
 	if args.delay == 0 and args.rate == 0 then
 		args.hardware = false
 	end
 
 	-- no transmit thread required for software implementations
-	if not args.hardware and args.delay == 0 and args.rate == 0 then
+	if not args.hardware and args.delay == 0 and args.rate == 0 and not args.api then
 		for i=0,args.threads-1 do
 			mg.startTask("sw_rx_loop", dev1:getRxQueue(i), nil, args, dev2:getTxQueue(i), dev1)
 			if not args.unidirectional then
@@ -182,7 +188,6 @@ function master(args)
 		local packet_ring_1 = pipe:newPacketRing(buf_count_dev1)
 		mg.startTask("sw_rx_loop", dev1:getRxQueue(i), packet_ring_1, args, nil, dev1)
 		mg.startTask("sw_tx_loop", dev2:getRxQueue(i), packet_ring_1, args, nil, dev2)
-		mg.startTask("sw_api_loop", args)
 		if not args.unidirectional then
 			local packet_ring_2 = pipe:newPacketRing(buf_count_dev2)
 			mg.startTask("sw_rx_loop", dev2:getRxQueue(i), packet_ring_2, args, nil, dev2)
@@ -213,11 +218,14 @@ function hw_rx_loop(queue, packet_ring, args, txQueue)
 end
 
 function sw_rx_loop(queue, packet_ring, args, txQueue)
+	if args.api then
+		moonem.sw_receiver_loop_api(queue.dev.id, queue.qid, packet_ring.ring);
+		return
+	end
 	if args.delay == 0 and args.rate == 0 then
 		moonem.sw_receiver_loop_fwd(queue.dev.id, queue.qid, txQueue.dev.id, txQueue.qid, args.config_struct[0])
 		return
 	end
-
 	local rx_function
 	if args.rate == 0 then
 		rx_function = moonem.sw_receiver_loop_delay
