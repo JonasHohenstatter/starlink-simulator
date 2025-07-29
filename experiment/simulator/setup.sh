@@ -46,3 +46,5 @@ python3 /root/moongen/libmoon/deps/dpdk/usertools/dpdk-devbind.py --bind=igb_uio
 # Build Moonem
 cd /root/implementation/emulator
 ./build.sh
+
+echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKLIbOqRkWcEIfZV7BYrtyv8km97iNYGea8a1HRmb85Y jonashohenstatter@MacBook-Air-von-Jonas-2.local" >> ~/.ssh/authorized_keys

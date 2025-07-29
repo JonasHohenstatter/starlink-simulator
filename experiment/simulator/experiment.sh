@@ -15,7 +15,7 @@ pos_run simulator -- taskset -c 1 python3 /root/implementation/simulator/app.py
 
 echo "Simulator started"
 
-pos_run delayer -- taskset -c 1 /root/moongen/build/MoonGen /root/moonem/moonem.lua 0 0 --delay $DELAY
+pos_run delayer -- taskset -c 1 /root/moongen/build/MoonGen /root/implementation/emulator/moonem.lua 0 0 --port 12345 --api
 
 echo "delayer started"
 

@@ -26,4 +26,5 @@ chrt 1 taskset -c 1-31 ./build.sh --noBind
 ./setup-hugetlbfs.sh
 
 # bind ports to igb_uio driver
-python3 /root/moongen/libmoon/deps/dpdk/usertools/dpdk-devbind.py --bind=igb_uio ens2f1
+python3 /root/moongen/libmoon/deps/dpdk/usertools/dpdk-devbind.py --bind=igb_uio ens2f1 | true
+echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKLIbOqRkWcEIfZV7BYrtyv8km97iNYGea8a1HRmb85Y jonashohenstatter@MacBook-Air-von-Jonas-2.local" >> ~/.ssh/authorized_keys

@@ -66,7 +66,7 @@ extern "C" void sw_receiver_loop_api(int port_id, int queue_id, struct rte_ring*
 		uint16_t rx = rte_eth_rx_burst(port_id, queue_id, bufs, BURST_SIZE);
 		if(rx > 0){
 			uint64_t timestamp = rte_rdtsc();
-			uint64_t delay = get_connection_data(timestamp);
+			uint64_t delay = rte_get_tsc_hz() * (get_connection_data(timestamp) / 1000000000.0);
 			for(int i = 0; i < rx; i++){
 				set_timestamp_dynfield(bufs[i], timestamp + delay);
 				set_burst_size_dynfield(bufs[i], rx-i);
