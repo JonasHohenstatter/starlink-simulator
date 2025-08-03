@@ -10,7 +10,6 @@
 #include "moonem_common.h"
 #include <atomic>
 
-static std::mutex mutex_;
 static connection_data* array_buffer = nullptr;
 static connection_data* array_use = nullptr;
 static uint64_t array_size = 0;

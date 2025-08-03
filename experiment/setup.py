@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 global log
 
-IMPLEMENTATION_BASE = "/root"
+IMPLEMENTATION_BASE = "/root/"
 IMPLEMENTATION_PATH = Path(__file__).resolve().parents[1]
 MOONGEN_PATH =  Path(__file__).resolve().parents[2] / "moongen"
 
@@ -17,7 +17,10 @@ def allocate_nodes(nodes, duration):
     try:
         for node in nodes:
             pos.allocations.free(node)
-        pos.allocations.allocate(nodes, duration=duration)
+        if duration == 0:
+            pos.allocations.allocate(nodes)
+        else:
+            pos.allocations.allocate(nodes, duration=duration)
     except:
         log.error("unable to allocate nodes")
     
@@ -33,7 +36,6 @@ def setup_logger():
     
 def setup_emulator(emulator):
     pos.nodes.copy(emulator, IMPLEMENTATION_PATH, IMPLEMENTATION_BASE, recursive=True)
-    pos.nodes.copy(emulator, MOONGEN_PATH, IMPLEMENTATION_BASE, recursive=True)
     pos.nodes.bootstrap(emulator)
     with open(f"{IMPLEMENTATION_PATH}/experiment/simulator/setup.sh", "rb") as setupfile:
         pos.commands.launch(emulator, infile=setupfile, blocking=True)
@@ -41,7 +43,6 @@ def setup_emulator(emulator):
 
 def setup_loadgen(loadgen):
     pos.nodes.copy(loadgen, IMPLEMENTATION_PATH, IMPLEMENTATION_BASE, recursive=True)
-    pos.nodes.copy(loadgen, MOONGEN_PATH, IMPLEMENTATION_BASE, recursive=True)
     pos.nodes.bootstrap(loadgen)
     with open(f"{IMPLEMENTATION_PATH}/experiment/loadgen/setup.sh", "rb") as setupfile:
         pos.commands.launch(loadgen, infile=setupfile, blocking=True)
@@ -51,6 +52,11 @@ def start_emulator(emulator):
     with open(f"{IMPLEMENTATION_PATH}/experiment/simulator/experiment.sh", "rb") as setupfile:
         pos.commands.launch(emulator, infile=setupfile, blocking=True)
     log.info('Started Simulator on %s', emulator)
+    
+def start_loadgen(loadgen):
+    with open(f"{IMPLEMENTATION_PATH}/experiment/loadgen/experiment.sh", "rb") as setupfile:
+        pos.commands.launch(loadgen, infile=setupfile, blocking=True)
+    log.info('Started Loadgen on %s', loadgen)
 
 def boot_nodes(nodes, image):
     for node in nodes:
@@ -64,7 +70,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('emulator', choices=get_nodes())
     parser.add_argument('loadgen', choices=get_nodes())
-    parser.add_argument('-d', '--duration', type=int, default=15)
+    parser.add_argument('-d', '--duration', type=int, default=0)
     parser.add_argument('-i', '--image', default="debian-bookworm")
     parser.add_argument('-n', '--no-boot', action="store_true")
     args = parser.parse_args()
@@ -82,6 +88,7 @@ def main():
     setup_emulator(args.emulator)
     setup_loadgen(args.loadgen)
     #start_emulator(args.emulator)
+    #start_loadgen(args.loadgen)
 
 if __name__ == "__main__":
     main()

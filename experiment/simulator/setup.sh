@@ -24,6 +24,7 @@ cd /root
 git clone https://moongen:REDACTED@gitlab.lrz.de/moongen/moongen.git
 cd /root/moongen
 git checkout v22.11
+echo "moongen commit hash: $(git rev-parse HEAD)"
 chrt 1 taskset -c 1-31 ./build.sh --noBind
 ./setup-hugetlbfs.sh
 
