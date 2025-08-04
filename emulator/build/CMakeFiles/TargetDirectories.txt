@@ -1,3 +1,0 @@
-/root/implementation/emulator/build/CMakeFiles/moonem.dir
-/root/implementation/emulator/build/CMakeFiles/edit_cache.dir
-/root/implementation/emulator/build/CMakeFiles/rebuild_cache.dir
