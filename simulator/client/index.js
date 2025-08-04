@@ -165,6 +165,11 @@ document.getElementById("gs_form").addEventListener("submit", (e) => {
     }
 })
 
+document.getElementById("emulation_form").addEventListener("submit", (e) => {
+    e.preventDefault();
+        socket.emit("ctrl_start_emulation")
+})
+
 socket.on("gs_update", (data) => {
     data.forEach((el) => {
         groundStations.push(L.circleMarker([el.lat, el.lng], {radius: 1, color: "purple", opacity: 1}).addTo(globe));
