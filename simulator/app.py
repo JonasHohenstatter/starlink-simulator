@@ -10,7 +10,7 @@ from flask_socketio import SocketIO
 from flask_cors import CORS
 import os
 from flask_socketio import join_room, leave_room
-from src.services.event_loop import position_loop, path_loop
+from src.services.event_loop import position_loop, path_loop, emulation_loop
 from src.services.gs_handler import load_from_config
 from flask import request
 from src.models.users import UserData
@@ -36,6 +36,7 @@ def connect_handler():
         flags["running"] = True
         io.start_background_task(position_loop, flags, connections, io)
         io.start_background_task(path_loop, flags, connections, io)
+        io.start_background_task(emulation_loop, flags, connections, io)
 
 @io.on("disconnect")
 def disconnect_handler():
@@ -72,6 +73,12 @@ def join_constellation(room):
     connections[request.sid].set_constellation(room)
     join_room(room)
     connections[request.sid].set_flag("update")
+
+@io.on("ctrl_set_emulation_client")
+def set_emulation_client():
+    for sid in connections:
+        connections[sid].set_emulator(False)
+    connections[request.sid].set_emulator(True)
 
 if __name__ == '__main__':
     io.run(app, host="0.0.0.0", port=os.environ.get("PORT", 1234), debug=True, allow_unsafe_werkzeug=True)

@@ -4,9 +4,11 @@ Main event loop that is used to periodically send out position updates to the fr
 from src.core.positions import get_positions
 from src.core.path_gen import get_path
 from src.core.measurement import update_measurements, generate_latency_graph
-from src.utils.path_utils import descriptor_path_to_coords
 
+from src.utils.path_utils import descriptor_path_to_coords
 from src.utils.position_utils import format_coordinates
+
+from src.models.api_connector import APIConnector
 from datetime import datetime, timezone
 
 positions = {}
@@ -43,6 +45,13 @@ def path_loop(flags, connections, io):
             if old_descriptor_path != connection.get_descriptor_path():
                 connection.set_flag("handover")
         io.sleep(15)
+        
+def emulation_loop(flags, connections, io):
+    while flags["running"]:
+        api = APIConnector(12345, 600)
+        for sid in connections:
+            if connections[sid].is_emulator():
+                pass
 
 def get_active_constellations(connections):
     constellations = []

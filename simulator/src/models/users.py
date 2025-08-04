@@ -8,6 +8,7 @@ class UserData:
         self.flags = {}
         self.saved_measurements = {}
         self.sid = 0
+        self.emulator = False
     def set_sid(self, sid):
         self.sid = sid
     def get_sid(self):
@@ -55,3 +56,8 @@ class UserData:
                 self.saved_measurements[field].append(measurements[field])
             else:
                 self.saved_measurements[field] = [measurements[field]]
+    def set_emulator(self, is_emulator):
+        self.emulator = is_emulator
+    def is_emulator(self):
+        return self.emulator
+        
