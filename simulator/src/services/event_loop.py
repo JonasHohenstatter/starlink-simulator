@@ -40,7 +40,9 @@ def path_loop(flags, connections, io):
             if not constellation in positions:
                 continue
             old_descriptor_path = connection.get_descriptor_path()
-            path_coords = get_path(positions[constellation], connection)[0]
+            path_coords = [0]
+            new_path = get_path(positions[constellation], connection)
+            connection.set_descriptor_path(new_path[1])
             if connection.has_connection():
                 io.emit("path_update", path_coords, to=sid)
             if old_descriptor_path != connection.get_descriptor_path():

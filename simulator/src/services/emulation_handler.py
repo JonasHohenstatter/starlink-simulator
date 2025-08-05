@@ -6,9 +6,10 @@ import subprocess
 from src.core.positions import get_positions
 from src.core.path_gen import get_path
 from src.core.measurement import get_measurements, generate_latency_graph
-
+from src.utils.measurement_utils import distance_to_latency, get_path_length
 from src.utils.path_utils import descriptor_path_to_coords
 from src.utils.position_utils import format_coordinates
+import random
 
 from datetime import datetime, timezone, timedelta
 
@@ -24,21 +25,28 @@ def get_data(timestamp, desc_path, connection, amount):
     ms = []
     for ts in range(timestamp, timestamp + amount + 1):
         positions = get_positions(connection.get_constellation(), datetime.now(timezone.utc) + timedelta(seconds=ts))
-        if ts % 15 or current_desc_path == None:
+        latency = random.gauss(0, 0.5)
+        if (ts % 15) == 0 or current_desc_path == None:
             current_desc_path = get_path(positions, connection)[1]
+            latency += random.gauss(5, 3)
         path_coords_ecef = descriptor_path_to_coords(current_desc_path, positions, connection, False)
-        measurements = get_measurements(connection, path_coords_ecef)
-        ms.append(measurements)
+        dist = get_path_length(path_coords_ecef)
+        latency += distance_to_latency(dist)
+        ms.append({"timestamp" : ts, "delay" : round(latency * 1000000), "capacity" : 0, "loss" : 0.0} )
+    print(ms)
+    return ms
         
 def run_emulation(flags, connection, io):
-    api = APIConnector(12345, 10)
-    starting_time = 10
+    api = APIConnector(12345, 20)
+    starting_time = 0
     desc_path = None
-    print("AAAAH")
+    data = get_data(starting_time, desc_path, connection, api.get_amount())
+    starting_time += api.get_amount()
     subprocess.Popen("pos_sync")
     while flags["emulation"]:
         if api.read_request() == 0:
             continue
-        data, starting_time = get_data(starting_time, desc_path, connection, api.get_amount())
+        data = get_data(starting_time, desc_path, connection, api.get_amount())
+        starting_time += api.get_amount()
         api.send_data(data)
     subprocess.Popen("pos_sync")
