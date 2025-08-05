@@ -24,7 +24,7 @@ with open(path, "r") as f:
 
 # Plot
 plt.figure(figsize=(10, 5))
-plt.plot(times, latencies, marker='o', linestyle='-', color='blue')
+plt.plot(times, latencies, linestyle='-', color='blue')
 plt.title("Latency over Time")
 plt.xlabel("Time (s)")
 plt.ylabel("Latency (µs or ms)")

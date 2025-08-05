@@ -13,6 +13,8 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r /root/implementation/emulator/utilities/requirements.txt
 
+sleep 5
+
 pos_sync
 
 pos_run loadgen -- taskset -c 1 /root/moongen/build/MoonGen /root/implementation/emulator/lua/l2-load-latency-graph.lua 0 0 -r 1000

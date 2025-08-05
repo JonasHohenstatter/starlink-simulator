@@ -4,7 +4,6 @@ local device = require "device"
 local ts     = require "timestamping"
 local stats  = require "stats"
 local hist   = require "histogram"
-
 local ETH_DST	= "12:13:14:15:16:17"
 
 local function getRstFile(...)
@@ -62,9 +61,9 @@ function timerSlave(txQueue, rxQueue, histfile, size)
 	local timestamper = ts:newTimestamper(txQueue, rxQueue)
 	local latencies = {}
 	mg.sleepMillis(1000) -- ensure that the load task is running
-	local start = os.clock()
+	local start = mg.getTime()
 	while mg.running() do
-		local timestamp = os.clock() - start
+		local timestamp = mg.getTime() - start
 		local latency, _ = timestamper:measureLatency(function(buf) buf:getEthernetPacket().eth.dst:setString(ETH_DST) end, 100)
 		if latency ~= nil then
 			table.insert(latencies, {timestamp, latency / 1000000}) -- convert to microseconds		
