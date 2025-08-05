@@ -10,8 +10,8 @@ set -x
 apt-get update
 apt-get install -y python3-venv python3-pip
 python3 -m venv venv
-pip install -r implementation/emulator/utilities/requirements.txt
 source venv/bin/activate
+pip install -r /root/implementation/emulator/utilities/requirements.txt
 
 pos_sync
 
@@ -19,9 +19,9 @@ pos_run loadgen -- taskset -c 1 /root/moongen/build/MoonGen /root/implementation
 
 pos_sync
 
-pos_kill loadgen
+pos_kill loadgen --force-upload
 
-python3 implementation/emulator/utilities/timestamp_graph.py
+python3 /root/implementation/emulator/utilities/timestamp_graph.py
 
 pos_upload /root/latency_plot.jpg
 

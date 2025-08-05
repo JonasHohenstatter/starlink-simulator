@@ -5,7 +5,7 @@ The main implementation of the simulator backend.
 Implements a Socket.io Websocket that supplies the frontend with satellite data
 """
 
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, render_template
 from flask_socketio import SocketIO
 from flask_cors import CORS
 import os
@@ -15,10 +15,12 @@ from src.services.event_loop import position_loop, path_loop
 from src.services.gs_handler import load_from_config
 from src.services.emulation_handler import run_emulation
 
+from src.utils.api_utils import is_testbed
+
 from flask import request
 from src.models.users import UserData
 
-app = Flask(__name__, static_folder="client")
+app = Flask(__name__, template_folder="client", static_folder="client")
 CORS(app)
 flags = {"running" : False, "emulation" : False}
 connections = {}
@@ -26,7 +28,7 @@ connections = {}
 """Serving the Frontend"""
 @app.route("/")
 def index():
-    return send_from_directory(app.static_folder, "index.html")
+    return render_template("index.html", testbed=is_testbed())
 
 """Socket setup and handling"""
 io = SocketIO(app , cors_allowed_origins="*")
@@ -39,6 +41,7 @@ def connect_handler():
         flags["running"] = True
         io.start_background_task(position_loop, flags, connections, io)
         io.start_background_task(path_loop, flags, connections, io)
+    
 
 @io.on("disconnect")
 def disconnect_handler():
@@ -79,6 +82,7 @@ def join_constellation(room):
 @io.on("ctrl_start_emulation")
 def start_emulation():
     if not flags["emulation"]:
+        print("Emulation start")
         flags["emulation"] = True
         io.start_background_task(run_emulation, flags, connections[request.sid], io)
         
@@ -86,7 +90,6 @@ def start_emulation():
 def stop_emulation():
     if flags["emulation"]:
         flags["emulation"] = False
-    
 
 if __name__ == '__main__':
     io.run(app, host="0.0.0.0", port=os.environ.get("PORT", 1234), debug=True, allow_unsafe_werkzeug=True)

@@ -3,7 +3,7 @@ Main event loop that is used to periodically send out position updates to the fr
 """
 from src.core.positions import get_positions
 from src.core.path_gen import get_path
-from src.core.measurement import update_measurements, generate_latency_graph
+from src.core.measurement import get_measurements, generate_latency_graph
 
 from src.utils.path_utils import descriptor_path_to_coords
 from src.utils.position_utils import format_coordinates
@@ -22,11 +22,11 @@ def position_loop(flags, connections, io):
             connection = connections[sid]
             satellites = positions[connection.get_constellation()]
             if (not connection.has_path()) or connection.is_flag("update"):
-                get_path(satellites, connection)
+                connection.set_descriptor_path(get_path(satellites, connection)[1]) 
                 connection.remove_flag("update")
             path_coords = descriptor_path_to_coords(connection.get_descriptor_path(), satellites, connection, True)
             path_coords_ecef = descriptor_path_to_coords(connection.get_descriptor_path(), satellites, connection, False)
-            update_measurements(connection, path_coords_ecef)
+            connection.add_measurements(get_measurements(connection, path_coords_ecef)) 
             generate_latency_graph(connection)
             if connection.has_connection():
                 io.emit("path_update", path_coords, to=sid)
@@ -37,8 +37,10 @@ def path_loop(flags, connections, io):
         for sid in connections:
             connection = connections[sid]
             constellation = connection.get_constellation()
+            if not constellation in positions:
+                continue
             old_descriptor_path = connection.get_descriptor_path()
-            path_coords = get_path(positions[constellation], connection)
+            path_coords = get_path(positions[constellation], connection)[0]
             if connection.has_connection():
                 io.emit("path_update", path_coords, to=sid)
             if old_descriptor_path != connection.get_descriptor_path():

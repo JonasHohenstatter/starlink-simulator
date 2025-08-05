@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 times = []
 latencies = []
 
-path = "/root/histogram.csv"
+path = "histogram.csv"
 
 with open(path, "r") as f:
     for line in f:

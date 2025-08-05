@@ -10,7 +10,7 @@ apt-get update
 apt-get install -y python3-venv python3-pip
 python3 -m venv venv
 source venv/bin/activate
-pip install -r implementation/requirements.txt
+pip install -r /root/implementation/requirements.txt
 #pos_run simulator -- taskset -c 1 python3 /root/implementation/simulator/app.py 
 
 echo "Simulator started"

@@ -5,19 +5,16 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import random
 
-def update_measurements(connection, path_ecef):
+def get_measurements(connection, path_ecef):
     distance = get_path_length(path_ecef)
     if not connection.has_connection():
-        connection.add_measurements({"latency" : 0.0})
-        return
+        return {"latency" : 0.0}
     if connection.is_flag("handover"):
         connection.remove_flag("handover")
         measurement = {"latency" : distance_to_latency(distance) + 10}
-        connection.add_measurements(measurement)
-        return
+        return {}
     measurement = {"latency" : distance_to_latency(distance)}
-    connection.add_measurements(measurement)
-    return
+    return measurement
 
 def generate_latency_graph(connection):
     latencies = connection.get_saved_measurements()["latency"]

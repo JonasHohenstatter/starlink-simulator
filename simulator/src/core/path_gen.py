@@ -11,7 +11,7 @@ def get_path(satellites, connection):
     descriptor_path = []
     
     if not connection.has_dish():
-        return path
+        return (path, descriptor_path)
     
     ecef_coords = satellites["ecef_coords"]
 
@@ -25,7 +25,7 @@ def get_path(satellites, connection):
     available_satellites = ecef_coords[mask]
     if len(available_satellites) == 0:
         # No available satellites => No connection to constellation possible
-        return []
+        return ([], [])
 
     first_hop_idx = min_euclidean_distance(dish_coords, available_satellites)
     first_hop_coords = np.array(satellites["latlng_coords"])[mask][first_hop_idx]
@@ -52,8 +52,7 @@ def get_path(satellites, connection):
             path.append(np.array(ground_stations)[mask][last_hop_idx])
             descriptor_path.append("GS_" + str(np.where(mask)[0][last_hop_idx]))
         
-    connection.set_descriptor_path(descriptor_path)
-    return path
+    return (path, descriptor_path)
     
 
 

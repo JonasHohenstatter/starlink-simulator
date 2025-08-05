@@ -62,11 +62,14 @@ extern "C" void receive_connection_data_loop(int port) {
             break;
         }
 
+        std::cout << "received: " << amount << std::endl;
+
         array_buffer = (connection_data*) malloc(amount * sizeof(connection_data));
         array_use = (connection_data*) malloc(amount * sizeof(connection_data));
 
         array_buffer = new connection_data[amount]();
         array_use = new connection_data[amount]();
+        std::cout << "received" << std::endl;
 
         char msg[32];
         int len = sprintf(msg, "SEND %d", amount);
@@ -74,11 +77,13 @@ extern "C" void receive_connection_data_loop(int port) {
             
         data_receiver(connection, amount, array_use);
         
+        
         array_used_flag.store(true);
 
         while(1) {
             while(!array_used_flag.load());
             char msg[32] = {0};
+            std::cout << "received" << std::endl;
             int len = sprintf(msg, "SEND %d", amount);
             write(connection, msg, len);
             data_receiver(connection, amount, array_buffer);
