@@ -183,10 +183,22 @@ socket.on("gs_update", (data) => {
 })
 
 socket.on("path_update", (data) => {
+    color = "white"
+    if(data.length < 2) {
+        if(path != undefined) {
+            path.remove();
+            path = undefined;
+        }
+        return;
+    }
+    if(data.length == 2) {
+        color = "orange"
+    }
     if(path == undefined) {
-        path = L.polyline(data, {color: "white"}).addTo(globe);
+        path = L.polyline(data, {color: color}).addTo(globe);
     }
     else {
         path.setLatLngs(data)
+        path.setStyle({color: color});
     }
 })

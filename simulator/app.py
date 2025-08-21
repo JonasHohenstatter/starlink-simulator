@@ -11,7 +11,7 @@ from flask_cors import CORS
 import os
 from flask_socketio import join_room, leave_room
 
-from src.services.event_loop import position_loop, path_loop
+from src.services.event_loop import position_loop
 from src.services.gs_handler import load_from_config
 from src.services.emulation_handler import run_emulation
 
@@ -40,9 +40,7 @@ def connect_handler():
     if not flags["running"]:
         flags["running"] = True
         io.start_background_task(position_loop, flags, connections, io)
-        io.start_background_task(path_loop, flags, connections, io)
     
-
 @io.on("disconnect")
 def disconnect_handler():
     flags["running"] = False
