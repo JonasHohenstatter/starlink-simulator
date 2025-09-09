@@ -183,6 +183,7 @@ socket.on("gs_update", (data) => {
 })
 
 socket.on("path_update", (data) => {
+    console.log(data)
     color = "white"
     if(data.length < 2) {
         if(path != undefined) {

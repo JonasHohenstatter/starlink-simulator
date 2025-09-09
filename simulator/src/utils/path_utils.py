@@ -15,10 +15,6 @@ def lla_to_ecef(lat_deg, lng_deg, alt):
 def euclidean_distances(dish, positions):
     return np.sqrt(np.sum(((positions - dish) ** 2), axis=1))
 
-def min_euclidean_distance(dish, positions):
-    positions = np.nan_to_num(positions, nan=0.0)
-    return np.argmin(euclidean_distances(dish, positions))
-
 def get_available_satellites(dish, positions, min_elevation_deg):
     """
     Used to find mask that masks the positions to only the available satellites for a dish
@@ -44,7 +40,23 @@ def get_available_gs(gs, satellite):
     
     elevation = 90 - np.degrees(angle)
     
-    return elevation >= 25
+    return elevation >= 10
+
+def get_available_gs_distances(gs, satellites):
+    gs = np.asarray(gs, dtype=float)           
+    sats = np.asarray(satellites, dtype=float) 
+    sats = sats[:, np.newaxis, :]
+    gses = gs[np.newaxis, :, :] 
+    
+    gs_to_sat = sats - gses       
+    gs_norm = gses / np.linalg.norm(gses, axis=2, keepdims=True)
+    
+    dot = np.sum(gs_to_sat * gs_norm, axis=2)  
+    dist = np.linalg.norm(gs_to_sat, axis=2)
+    elev = np.arcsin(dot / dist)
+    
+    available_mask = elev > np.deg2rad(10)
+    return np.where(available_mask, dist, np.inf)
 
 def descriptor_path_to_coords(descriptor_path, positions, connection, is_latlon: bool):
     path = []

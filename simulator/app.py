@@ -5,7 +5,7 @@ The main implementation of the simulator backend.
 Implements a Socket.io Websocket that supplies the frontend with satellite data
 """
 
-from flask import Flask, send_from_directory, render_template
+from flask import Flask, render_template
 from flask_socketio import SocketIO
 from flask_cors import CORS
 import os
@@ -80,7 +80,6 @@ def join_constellation(room):
 @io.on("ctrl_start_emulation")
 def start_emulation():
     if not flags["emulation"]:
-        print("Emulation start")
         flags["emulation"] = True
         io.start_background_task(run_emulation, flags, connections[request.sid], io)
         

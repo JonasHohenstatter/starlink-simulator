@@ -1,59 +1,94 @@
 """Core Path feature of the Simulator"""
 
-from src.utils.path_utils import min_euclidean_distance, lla_to_ecef, get_available_satellites, get_available_gs
-from src.utils.position_utils import format_coordinates
+from src.utils.path_utils import lla_to_ecef, get_available_satellites, get_available_gs_distances, euclidean_distances
 import numpy as np
 
+PATH_DROP_ELEVATION_FACTOR = 1.5
 
 def get_path(satellites, connection):
-    """Calculates and updates the full path from the dish to a destination."""
-    path = []
-    descriptor_path = []
+    """
+    Generates the optimal path for a given connection through the satellite positions
+    """
+    if check_path(satellites, connection):
+        return connection.get_descriptor_path()
     
     if not connection.has_dish():
-        return (path, descriptor_path)
+        return []
+    path = ["DISH"]
+    
+    """Setting up variables"""
+    dish = connection.get_dish()
+    ground_stations = connection.get_gs()
+    ground_stations_ecef = [lla_to_ecef(gs["lat"], gs["lng"], 0) for gs in ground_stations]
+    
+    """Drop path if no ground stations are available"""
+    if len(ground_stations) == 0:
+        return []
     
     ecef_coords = satellites["ecef_coords"]
-
-    dish = connection.get_dish()
     dish_coords = lla_to_ecef(dish["lat"], dish["lng"], 0)
-    descriptor_path.append("DISH")
+    
+    """Append Dish to paths"""
+    available_satellites_mask = get_available_satellites(dish_coords, ecef_coords, dish["elevation"])
+    available_satellites = ecef_coords[available_satellites_mask]
+    
+    """Check if there are any available satellites"""
+    if len(available_satellites) == 0:   
+        return []
+    
+    distances = get_available_gs_distances(ground_stations_ecef, available_satellites)
+    mask = distances != np.inf
+    connectable_satellites = available_satellites[np.any(mask, axis=1)]
+    
+    if(len(connectable_satellites) == 0):
+        return []
+    
+    gs_sat_dist = distances[np.any(mask, axis=1)]
+    dish_sat_dist = euclidean_distances(dish_coords, connectable_satellites)
+    
+    summed_distances = dish_sat_dist[:, np.newaxis] + gs_sat_dist
 
-    path.append({"lng" : dish["lng"], "lat" : dish["lat"]})
+    flat_opt_idx = np.argmin(summed_distances)
+    sat_index, gs_index = np.unravel_index(flat_opt_idx, summed_distances.shape)
     
-    mask = get_available_satellites(dish_coords, ecef_coords, dish["elevation"])
-    available_satellites = ecef_coords[mask]
-    if len(available_satellites) == 0:
-        # No available satellites => No connection to constellation possible
-        return ([], [])
+    available_sat_idx = np.where(mask)[0][sat_index]
+    original_sat_idx = np.where(available_satellites_mask)[0][available_sat_idx]
 
-    first_hop_idx = min_euclidean_distance(dish_coords, available_satellites)
-    first_hop_coords = np.array(satellites["latlng_coords"])[mask][first_hop_idx]
-    first_hop_ecef = np.array(ecef_coords)[mask][first_hop_idx]
+    path.append("SAT_" + str(original_sat_idx))
+    path.append("GS_" + str(gs_index))
     
-    descriptor_path.append("SAT_" + str(np.where(mask)[0][first_hop_idx]))
+    return path
+
+def check_path(satellites, connection):
+    """
+    Checks if the current path is still valid
+    """
+    if not connection.has_path() or not connection.has_dish():
+        return False
     
-    first_hop_lla = {
-        "lng" : first_hop_coords[0] if not np.isnan(first_hop_coords[0]) else None, 
-        "lat" : first_hop_coords[1] if not np.isnan(first_hop_coords[1]) else None
-    }
-    path.append(first_hop_lla)
-    
+    path = connection.get_descriptor_path()
+    dish = connection.get_dish()
     ground_stations = connection.get_gs()
-
-    if ground_stations:
-        ground_stations_ecef = [lla_to_ecef(gs["lat"], gs["lng"], 0) for gs in ground_stations]
-
-        mask = get_available_gs(ground_stations_ecef, first_hop_ecef)
-        available_gs = np.array(ground_stations_ecef)[mask]
-        
-        if len(available_gs) != 0:
-            last_hop_idx = min_euclidean_distance(first_hop_ecef, available_gs);
-            path.append(np.array(ground_stations)[mask][last_hop_idx])
-            descriptor_path.append("GS_" + str(np.where(mask)[0][last_hop_idx]))
-        
-    return (path, descriptor_path)
+    ground_stations_ecef = [lla_to_ecef(gs["lat"], gs["lng"], 0) for gs in ground_stations]
     
-
-
+    ecef_coords = satellites["ecef_coords"]
+    dish_coords = lla_to_ecef(dish["lat"], dish["lng"], 0)
     
+    """Check if dish can still see satellite"""
+    sat_idx = int(path[1].split("_")[-1])
+    sat_coords = ecef_coords[sat_idx]
+    
+    available_satellites_mask = get_available_satellites(dish_coords, ecef_coords, PATH_DROP_ELEVATION_FACTOR * dish["elevation"])
+    
+    if not available_satellites_mask[sat_idx]:
+        return False
+    
+    """Check if satellite can still see ground station"""
+    gs_idx = int(path[2].split("_")[-1])
+    gs_coords = ground_stations_ecef[gs_idx]
+    
+    available_gs_mask = get_available_gs_distances([gs_coords], [sat_coords])[0] != np.inf
+    if not available_gs_mask[0]:
+        return False
+    
+    return True
