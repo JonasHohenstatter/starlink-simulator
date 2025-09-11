@@ -3,7 +3,7 @@ import numpy as np
 
 SPEED_OF_LIGHT = 299_792_458 
 
-def distance_to_latency(distance):
+def distance_to_rtt(distance):
     """Converts a distance in km to a latency value. """
     c_km_per_ms = (SPEED_OF_LIGHT / 1_000_000) # Converting c from m/s to km/ms
     return (distance / c_km_per_ms) * 2
