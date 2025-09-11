@@ -5,7 +5,7 @@ import subprocess
 
 from src.core.positions import get_positions
 from src.core.path_gen import get_path
-from src.utils.measurement_utils import distance_to_latency, get_path_length
+from src.utils.measurement_utils import distance_to_rtt, get_path_length
 from src.utils.path_utils import descriptor_path_to_coords
 import random
 
@@ -22,15 +22,19 @@ def get_data(timestamp, desc_path, connection, amount):
     ms = []
     for ts in range(timestamp, timestamp + amount + 1):
         positions = get_positions(connection.get_constellation(), datetime.now(timezone.utc) + timedelta(seconds=ts))
-        latency = random.gauss(0, 0.5)
-        if (ts % 15) == 0 or current_desc_path == None:
-            current_desc_path = get_path(positions, connection)[1]
-            latency += random.gauss(5, 3)
+        rtt = 0
+        if (ts % 15) == 0 and current_desc_path != None:
+            new_desc_path = get_path(positions, connection)
+            if not all(x == y for x, y in zip(current_desc_path, new_desc_path)):
+                current_desc_path = new_desc_path
+                rtt += random.gauss(2,1)
+        if current_desc_path == None:
+            current_desc_path = get_path(positions, connection)
         path_coords_ecef = descriptor_path_to_coords(current_desc_path, positions, connection, False)
         dist = get_path_length(path_coords_ecef)
-        latency += distance_to_latency(dist)
-        ms.append({"timestamp" : ts, "delay" : round(latency * 1000000), "capacity" : 0, "loss" : 0.0} )
-    print(ms)
+        rtt += distance_to_rtt(dist)
+        rtt += random.gauss(15, 2) + random.gauss(15, 2)
+        ms.append({"timestamp" : ts, "delay" : round(rtt * 1000000), "capacity" : 0, "loss" : 0.0} )
     return ms
         
 def run_emulation(flags, connection, io):

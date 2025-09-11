@@ -31,6 +31,8 @@ class UserData:
         self.gs.extend(gs)
     def set_descriptor_path(self, path):
         self.descriptor_path = path
+    def get_descriptor_path(self):
+        return self.descriptor_path
     def has_path(self):
         return self.descriptor_path != []
     def get_descriptor_path(self):

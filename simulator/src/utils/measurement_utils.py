@@ -6,7 +6,7 @@ SPEED_OF_LIGHT = 299_792_458
 def distance_to_latency(distance):
     """Converts a distance in km to a latency value. """
     c_km_per_ms = (SPEED_OF_LIGHT / 1_000_000) # Converting c from m/s to km/ms
-    return distance / c_km_per_ms  
+    return (distance / c_km_per_ms) * 2
 
 def get_subpaths_length_ecef(path_ecef):
     """Retrieves the distance of the parts of a path by its ecef coords"""

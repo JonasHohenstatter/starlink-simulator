@@ -2,12 +2,9 @@
 Main event loop that is used to periodically send out position updates to the frontend
 """
 from src.core.positions import get_positions
-from src.core.path_gen import get_path, check_path
-from src.core.measurement import get_measurements, generate_latency_graph
-
+from src.core.path_gen import get_path
 from src.utils.path_utils import descriptor_path_to_coords
 from src.utils.position_utils import format_coordinates
-
 from datetime import datetime, timezone
 
 
@@ -30,7 +27,6 @@ def position_loop(flags, connections, io):
             io.emit("constellation_update", format_coordinates(positions[constellation]["names"], positions[constellation]["latlng_coords"]), to=constellation)
         for sid, connection in connections.items():
             satellites = positions[connection.get_constellation()]
-            active_path = check_path(satellites, connection)
             if handover or (not connection.has_path()) or connection.is_flag("update"):
                 new_path = get_path(satellites, connection)
                 connection.set_descriptor_path(new_path)
