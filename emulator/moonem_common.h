@@ -20,7 +20,7 @@ struct connection_data {
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-extern "C" uint64_t get_connection_data(uint64_t timestamp);
+extern "C" connection_data get_connection_data(uint64_t timestamp);
 
 //https://lemire.me/blog/2019/03/19/the-fastest-conventional-random-number-generator-that-can-pass-big-crush/
 static uint64_t wyhash64(uint64_t* state) {
@@ -44,5 +44,3 @@ inline int applyLoss(uint16_t rx, struct rte_mbuf** bufs, struct rte_mbuf** bufs
 	}
 	return accept_index;
 }
-
-

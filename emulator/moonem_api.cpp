@@ -108,7 +108,16 @@ static uint64_t linear_interpolation(uint64_t y0, uint64_t y1, uint64_t x0, uint
     return (uint64_t)result;
 }
 
-extern "C" uint64_t get_connection_data(uint64_t timestamp) {
+
+static float linear_interpolation_float(float y0, float y1,
+                                        float x0, float x1,
+                                        float x) {
+    if (x1 == x0) return y0;
+    return y0 + (y1 - y0) * ((x - x0) / (x1 - x0));
+}
+
+extern "C" connection_data get_connection_data(uint64_t timestamp) {
+    struct connection_data output;
     if(array_size > 0) {
         if(not array_used_flag.load()) {
             if(timestamp >= array_buffer[0].timestamp && array_buffer[0].timestamp > 0) {
@@ -134,8 +143,11 @@ extern "C" uint64_t get_connection_data(uint64_t timestamp) {
             if(not(before.timestamp <= timestamp && after.timestamp >= timestamp)) {
                 std::cerr << "Timestamp out of bounds: " << timestamp << std::endl;
             }
-            return linear_interpolation(before.delay, after.delay, before.timestamp, after.timestamp, timestamp);
+            output.delay = linear_interpolation(before.delay, after.delay, before.timestamp, after.timestamp, timestamp);
+            output.loss = linear_interpolation_float(before.loss, after.loss, before.timestamp, after.timestamp, timestamp);
+            output.capacity = before.capacity;
+            return output;
         }
     }
-    return 0;
+    return output;
 }
