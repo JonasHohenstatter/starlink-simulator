@@ -16,14 +16,14 @@ static uint64_t array_size = 0;
 static std::atomic<bool> array_used_flag;
 static uint64_t starting_ts;
 
-static void data_receiver(int connection, int amount, connection_data* arr) {
+static int data_receiver(int connection, int amount, connection_data* arr) {
     ssize_t buffer_size = amount * sizeof(connection_data);
     ssize_t received = 0;
 
     while (received < buffer_size) {
         ssize_t len = read(connection, (char*)arr + received, buffer_size - received);
         if (len <= 0) {
-            break;
+            return 1;
         }
         received += len;
     }
@@ -34,6 +34,7 @@ static void data_receiver(int connection, int amount, connection_data* arr) {
             arr[i].timestamp = starting_ts + ts;
         }
     }
+    return 0;
 }
 
 extern "C" void receive_connection_data_loop(int port) {
@@ -54,29 +55,35 @@ extern "C" void receive_connection_data_loop(int port) {
     listen(sock, 1);
     
     while(1) {
-        int connection = accept(sock, nullptr, nullptr);
-        int amount = 0;
-        starting_ts = rte_rdtsc();
+        int connection;
+        int amount;
+        while(1){
+            connection = accept(sock, nullptr, nullptr);
+            amount = 0;
+            starting_ts = rte_rdtsc();
+            std::cout << "Connection" << std::endl;
 
-        if(read(connection, &amount, sizeof(amount)) <= 0) {
-            break;
+            if(read(connection, &amount, sizeof(amount)) <= 0) {
+                continue;
+            }
+
+            std::cout << "received: " << amount << std::endl;
+
+            array_buffer = (connection_data*) malloc(amount * sizeof(connection_data));
+            array_use = (connection_data*) malloc(amount * sizeof(connection_data));
+
+            array_buffer = new connection_data[amount]();
+            array_use = new connection_data[amount]();
+            std::cout << "received" << std::endl;
+
+            char msg[32];
+            int len = sprintf(msg, "SEND %d", amount);
+            write(connection, msg, len);
+                
+            if(data_receiver(connection, amount, array_use)){
+                continue;
+            };
         }
-
-        std::cout << "received: " << amount << std::endl;
-
-        array_buffer = (connection_data*) malloc(amount * sizeof(connection_data));
-        array_use = (connection_data*) malloc(amount * sizeof(connection_data));
-
-        array_buffer = new connection_data[amount]();
-        array_use = new connection_data[amount]();
-        std::cout << "received" << std::endl;
-
-        char msg[32];
-        int len = sprintf(msg, "SEND %d", amount);
-        write(connection, msg, len);
-            
-        data_receiver(connection, amount, array_use);
-        
         
         array_used_flag.store(true);
 
@@ -86,7 +93,9 @@ extern "C" void receive_connection_data_loop(int port) {
             std::cout << "received" << std::endl;
             int len = sprintf(msg, "SEND %d", amount);
             write(connection, msg, len);
-            data_receiver(connection, amount, array_buffer);
+            if(data_receiver(connection, amount, array_buffer)) {
+                break;
+            };
             array_size = amount;
             array_used_flag.store(false);
         }
