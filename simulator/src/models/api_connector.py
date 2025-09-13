@@ -11,7 +11,7 @@ class APIConnector:
         try:
             req = self.sock.recv(10).decode()
             if req.startswith("SEND"):
-                return int(req.split()[1])
+                return self.amount
         except BlockingIOError:
             return 0
     def send_data(self, data):

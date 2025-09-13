@@ -42,12 +42,13 @@ def run_emulation(flags, connection, io):
     starting_time = 0
     desc_path = None
     data = get_data(starting_time, desc_path, connection, api.get_amount())
+    api.send_data(data)
     starting_time += api.get_amount()
-    subprocess.Popen("pos_sync")
+    subprocess.Popen("pos_sync -t start", shell=True)
     while flags["emulation"]:
         if api.read_request() == 0:
             continue
         data = get_data(starting_time, desc_path, connection, api.get_amount())
         starting_time += api.get_amount()
         api.send_data(data)
-    subprocess.Popen("pos_sync")
+    subprocess.Popen("pos_sync -t end", shell=True)

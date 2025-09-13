@@ -9,6 +9,7 @@ global log
 IMPLEMENTATION_BASE = "/root/"
 IMPLEMENTATION_PATH = Path(__file__).resolve().parents[1]
 MOONGEN_PATH =  Path(__file__).resolve().parents[2] / "moongen"
+EXPERIMENT_PATH = "experiment" / "legacy"
 
 def get_nodes():
     return [el["id"] for el in pos.nodes.list_all()[0]]
@@ -37,24 +38,24 @@ def setup_logger():
 def setup_emulator(emulator):
     pos.nodes.copy(emulator, IMPLEMENTATION_PATH, IMPLEMENTATION_BASE, recursive=True)
     pos.nodes.bootstrap(emulator)
-    with open(f"{IMPLEMENTATION_PATH}/experiment/simulator/setup.sh", "rb") as setupfile:
+    with open(f"{IMPLEMENTATION_PATH}/{EXPERIMENT_PATH}/setup.sh", "rb") as setupfile:
         pos.commands.launch(emulator, infile=setupfile, blocking=True)
     log.info('Emulator Setup on %s completed!', emulator)
 
 def setup_loadgen(loadgen):
     pos.nodes.copy(loadgen, IMPLEMENTATION_PATH, IMPLEMENTATION_BASE, recursive=True)
     pos.nodes.bootstrap(loadgen)
-    with open(f"{IMPLEMENTATION_PATH}/experiment/loadgen/setup.sh", "rb") as setupfile:
+    with open(f"{IMPLEMENTATION_PATH}/{EXPERIMENT_PATH}/loadgen/setup.sh", "rb") as setupfile:
         pos.commands.launch(loadgen, infile=setupfile, blocking=True)
     log.info('Loadgen Setup on %s completed!', loadgen)
     
 def start_emulator(emulator):
-    with open(f"{IMPLEMENTATION_PATH}/experiment/simulator/experiment.sh", "rb") as setupfile:
+    with open(f"{IMPLEMENTATION_PATH}/{EXPERIMENT_PATH}/simulator/experiment.sh", "rb") as setupfile:
         pos.commands.launch(emulator, infile=setupfile, blocking=True)
     log.info('Started Simulator on %s', emulator)
     
 def start_loadgen(loadgen):
-    with open(f"{IMPLEMENTATION_PATH}/experiment/loadgen/experiment.sh", "rb") as setupfile:
+    with open(f"{IMPLEMENTATION_PATH}/{EXPERIMENT_PATH}/loadgen/experiment.sh", "rb") as setupfile:
         pos.commands.launch(loadgen, infile=setupfile, blocking=True)
     log.info('Started Loadgen on %s', loadgen)
 
