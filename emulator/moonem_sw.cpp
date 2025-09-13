@@ -43,47 +43,34 @@ extern "C" void init_dynfield_burst_size_offset(){
 }
 
 extern "C" void sw_receiver_loop_api(int port_id, int queue_id, struct rte_ring* packet_ring){
+	
 	struct rte_mbuf* bufs[BURST_SIZE];
 	struct rte_mbuf* bufs_accept[BURST_SIZE];
-
+	
 	while (is_running(0)) {
 		uint16_t rx = rte_eth_rx_burst(port_id, queue_id, bufs, BURST_SIZE);
 		if(rx > 0){
-			uint64_t recv_timestamp = rte_rdtsc();
-			connection_data ts_properties = get_connection_data(recv_timestamp);
-			
-			uint64_t delay = rte_get_tsc_hz() * (ts_properties.delay / 1000000000.0d);
-			const uint64_t loss_value = ts_properties.loss * 0xFFFFFFFFFFFFFFFFULL;
-			const double B_P_TSC_TARGET = 1000 * 1000000.0d / rte_get_tsc_hz();
-			const double BACKLOG_BOUND = ts_properties.capacity / (B_P_TSC_TARGET / 8);
-			double next_at = 0;
-			int accept_index = 0;
+			uint64_t timestamp = rte_rdtsc();
+			connection_data properties = get_connection_data(timestamp);
 
-			for(int i = 0; i < rx; i++){
-				uint64_t effective_packet_size = bufs[i]->pkt_len+24;
-				uint64_t send_time = recv_timestamp + delay;
-				double real_send_time = MAX(send_time, next_at);
-				double backlog = real_send_time - send_time;
+			uint64_t delay =  rte_get_tsc_hz() * (properties.delay / 1000000000.0);
+			const uint64_t loss_value = properties.loss * 0xFFFFFFFFFFFFFFFFULL;
+			uint64_t loss_state = timestamp;
 
-				if(backlog > BACKLOG_BOUND){
-					rte_pktmbuf_free(bufs[i]);
-					continue;
+			if(loss_value > 0){
+				std::cout << "Loss exceed" << loss_value << std::endl;
+				rx = applyLoss(rx, bufs, bufs_accept, loss_value, &loss_state);
+				for(int i = 0; i < rx; i++){
+					set_timestamp_dynfield(bufs_accept[i], timestamp + delay);
+					set_burst_size_dynfield(bufs_accept[i], rx-i);
 				}
-
-				next_at = real_send_time + ((effective_packet_size * 8.0d) / B_P_TSC_TARGET);
-
-				if(loss_value > 0 && wyhash64(&recv_timestamp) < loss_value){
-					rte_pktmbuf_free(bufs[i]);
-					continue;
+				rte_ring_sp_enqueue_bulk(packet_ring, (void**)bufs_accept, rx, NULL);
+			}else{
+				for(int i = 0; i < rx; i++){
+					set_timestamp_dynfield(bufs[i], timestamp + delay);
+					set_burst_size_dynfield(bufs[i], rx-i);
 				}
-
-				set_timestamp_dynfield(bufs[i], real_send_time);
-				set_burst_size_dynfield(bufs[i], 1);
-				bufs_accept[accept_index++] = bufs[i];
-			}
-
-			if(accept_index > 0){
-				rte_ring_sp_enqueue_bulk(packet_ring, (void**)bufs_accept, accept_index, NULL);
+				rte_ring_sp_enqueue_bulk(packet_ring, (void**)bufs, rx, NULL);
 			}
 		}
 	}

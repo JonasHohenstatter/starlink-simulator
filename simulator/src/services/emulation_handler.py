@@ -34,7 +34,7 @@ def get_data(timestamp, desc_path, connection, amount):
         dist = get_path_length(path_coords_ecef)
         rtt += distance_to_rtt(dist)
         rtt += random.gauss(15, 2) + random.gauss(15, 2)
-        ms.append({"timestamp" : ts, "delay" : round(rtt * 1000000), "capacity" : 0, "loss" : 0.0} )
+        ms.append({"timestamp" : ts, "delay" : round(rtt * 1000000), "capacity" : 10000000000000, "loss" : 0.0} )
     return ms
         
 def run_emulation(flags, connection, io):
