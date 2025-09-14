@@ -60,20 +60,13 @@ extern "C" void receive_connection_data_loop(int port) {
         connection = accept(sock, nullptr, nullptr);
         amount = 0;
         starting_ts = rte_rdtsc();
-        std::cout << "Connection" << std::endl;
 
         if(read(connection, &amount, sizeof(amount)) <= 0) {
             continue;
         }
 
-        std::cout << "received: " << amount << std::endl;
-
-        array_buffer = (connection_data*) malloc(amount * sizeof(connection_data));
-        array_use = (connection_data*) malloc(amount * sizeof(connection_data));
-
         array_buffer = new connection_data[amount]();
         array_use = new connection_data[amount]();
-        std::cout << "received" << std::endl;
 
         char msg[32];
         int len = sprintf(msg, "SEND %d", amount);
@@ -83,19 +76,24 @@ extern "C" void receive_connection_data_loop(int port) {
             continue;
         };
         
-        array_used_flag.store(true);
+        write(connection, msg, len);
+
+        if(data_receiver(connection, amount, array_buffer)) {
+            break;
+        };
+
+        array_used_flag.store(false);
 
         while(1) {
-            while(!array_used_flag.load());
-            char msg[32] = {0};
-            std::cout << "received" << std::endl;
-            int len = sprintf(msg, "SEND %d", amount);
+            while(array_buffer[0].timestamp > rte_rdtsc());
+            memcpy(array_use, array_buffer, array_size * sizeof(connection_data));
+            array_used_flag.store(true);
             write(connection, msg, len);
             if(data_receiver(connection, amount, array_buffer)) {
                 break;
             };
             array_size = amount;
-            array_used_flag.store(false);
+            
         }
         close(connection);
         free(array_buffer);
@@ -126,12 +124,9 @@ static float linear_interpolation_float(float y0, float y1,
 extern "C" connection_data get_connection_data(uint64_t timestamp) {
     connection_data output = {};
     if(array_size > 0) {
-        if(not array_used_flag.load()) {
-            if(timestamp >= array_buffer[0].timestamp && array_buffer[0].timestamp > 0) {
-                memcpy(array_use, array_buffer, array_size * sizeof(connection_data));
-                array_used_flag.store(true);
-                current_index = 0;
-            }
+        if(array_used_flag.load()) {
+            current_index = 0;
+            array_used_flag.store(false);
         }
         if(timestamp >= array_use[0].timestamp && array_use[0].timestamp > 0) {
             connection_data before;
@@ -150,8 +145,6 @@ extern "C" connection_data get_connection_data(uint64_t timestamp) {
             if(not(before.timestamp <= timestamp && after.timestamp >= timestamp)) {
                 std::cerr << "Timestamp out of bounds: " << timestamp << std::endl;
             }
-
-            std::cout << "RECV AND DEL " << timestamp << std::endl;
             
             output.delay = linear_interpolation(before.delay, after.delay, before.timestamp, after.timestamp, timestamp);
             output.loss = linear_interpolation_float(before.loss, after.loss, before.timestamp, after.timestamp, timestamp);

@@ -1,3 +1,6 @@
 {
-    "cmake.sourceDirectory": "/Users/jonashohenstatter/Documents/Uni/Bachelor/Thesis/Implementation/emulator"
+    "cmake.sourceDirectory": "/Users/jonashohenstatter/Documents/Uni/Bachelor/Thesis/Implementation/emulator",
+    "files.associations": {
+        "iostream": "cpp"
+    }
 }
