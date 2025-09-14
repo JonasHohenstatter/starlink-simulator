@@ -1,4 +1,5 @@
 from src.models.api_connector import APIConnector
+from src.models.users import UserData
 import os
 import random
 import subprocess
@@ -11,14 +12,16 @@ import random
 
 from datetime import datetime, timezone, timedelta
 
+import copy
+
 
 running = False
 
-def get_data(timestamp, desc_path, connection, amount):
+def get_data(timestamp, connection, amount):
     """
     This function is used for all data acquisition for the emulation
     """
-    current_desc_path = desc_path
+    current_desc_path = connection.get_descriptor_path()
     ms = []
     for ts in range(timestamp, timestamp + amount + 1):
         positions = get_positions(connection.get_constellation(), datetime.now(timezone.utc) + timedelta(seconds=ts))
@@ -27,28 +30,38 @@ def get_data(timestamp, desc_path, connection, amount):
             new_desc_path = get_path(positions, connection)
             if not all(x == y for x, y in zip(current_desc_path, new_desc_path)):
                 current_desc_path = new_desc_path
-                rtt += random.gauss(2,1)
+                connection.set_descriptor_path(new_desc_path)
+                rtt += 6
         if current_desc_path == None:
             current_desc_path = get_path(positions, connection)
         path_coords_ecef = descriptor_path_to_coords(current_desc_path, positions, connection, False)
         dist = get_path_length(path_coords_ecef)
         rtt += distance_to_rtt(dist)
-        rtt += random.gauss(15, 2) + random.gauss(15, 2)
-        ms.append({"timestamp" : ts, "delay" : round(rtt * 1000000), "capacity" : 10000000000000, "loss" : 0.0} )
+        ms.append({"timestamp" : ts, "delay" : round(rtt * 1000000), "capacity" : ts, "loss" : 0.0} )
     return ms
         
 def run_emulation(flags, connection, io):
-    api = APIConnector(12345, 20)
+    amount = 20
+    port = 12345
+    
+    api = APIConnector(port, amount)
+    con = copy.deepcopy(connection)
     starting_time = 0
-    desc_path = None
-    data = get_data(starting_time, desc_path, connection, api.get_amount())
-    api.send_data(data)
-    starting_time += api.get_amount()
+    
+    while api.read_request == 0: continue
+    starting_time += amount
+    api.send_data(get_data(starting_time, con, amount))
+        
+    while api.read_request == 0: continue
+    starting_time += amount
+    api.send_data(get_data(starting_time, con, amount))
+    
     subprocess.Popen("pos_sync -t start", shell=True)
+    
     while flags["emulation"]:
-        if api.read_request() == 0:
-            continue
-        data = get_data(starting_time, desc_path, connection, api.get_amount())
-        starting_time += api.get_amount()
+        if api.read_request() == 0: continue
+        data = get_data(starting_time, con, amount)
+        starting_time += amount
         api.send_data(data)
+
     subprocess.Popen("pos_sync -t end", shell=True)
