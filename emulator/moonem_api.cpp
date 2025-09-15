@@ -93,7 +93,6 @@ extern "C" void receive_connection_data_loop(int port) {
                 break;
             };
             array_size = amount;
-            
         }
         close(connection);
         free(array_buffer);
