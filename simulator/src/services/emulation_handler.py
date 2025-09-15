@@ -33,7 +33,7 @@ def get_data(timestamp, connection, amount):
                 current_desc_path = new_desc_path
                 connection.set_descriptor_path(new_desc_path)
                 rtt += max(0,random.gauss(mu=4, sigma=2))
-                loss = max(0, random.gauss(3, 2))
+                loss = max(0, random.gauss(20, 2))
         if current_desc_path == None:
             current_desc_path = get_path(positions, connection)
         path_coords_ecef = descriptor_path_to_coords(current_desc_path, positions, connection, False)
@@ -42,13 +42,14 @@ def get_data(timestamp, connection, amount):
         ms.append({"timestamp" : ts, "delay" : round(rtt * 1000000), "capacity" : ts, "loss" : loss} )
         with open("output.csv", "a", newline="") as f:  # 'a' = append mode
             writer = csv.writer(f)
-            writer.writerow([f"{ts},{round(rtt * 1000000)},{ts},{loss}"])
-    
+            writer.writerow([f"{ts},{round(rtt * 1000000)},{ts},{loss / 100}"])
     return ms
-        
+
 def run_emulation(flags, connection, io):
     amount = 20
     port = 12345
+    
+    duration = 360
     
     api = APIConnector(port, amount)
     con = copy.deepcopy(connection)
@@ -69,5 +70,7 @@ def run_emulation(flags, connection, io):
         data = get_data(starting_time, con, amount)
         starting_time += amount
         api.send_data(data)
+        if starting_time >= duration:
+            break
 
     subprocess.Popen("pos_sync -t end", shell=True)

@@ -31,6 +31,8 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r /root/implementation/experiment/splitter/capture/processing/graph/requirements.txt
 
-python3 /root/implementation/experiment/splitter/capture/processing/graph/draw_graph.py latency_average.csv loss_over_time.csv
+folder_name="$1_measurement_$(date +"%Y-%m-%d_%H-%M-%S")"
 
-rm /root/*.csv
+python3 /root/implementation/experiment/splitter/capture/processing/graph/draw_graph.py latency_average.csv loss_over_time.csv "$folder_name"
+
+pos_upload -r /root/"$folder_name"
