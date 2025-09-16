@@ -1,12 +1,15 @@
 #!/bin/bash
 
+# Script is run locally on experiment server.
+
+# exit on error
 set -e
+# log every command
 set -x
 
-rm -rf /root/ice
-rm -rf /root/venv
-rm -rf /root/moongen
+cd /root
 
+# install ice ddp package
 git clone https://gitlab+deploy-token-1810:REDACTED@gitlab.lrz.de/idp-lachnit/ice.git -b ice-1.11.14
 mkdir -p /lib/firmware/updates/intel/ice/ddp
 cp /root/ice/ddp/ice-1.3.30.0.pkg /lib/firmware/updates/intel/ice/ddp/
@@ -26,8 +29,8 @@ chrt 1 taskset -c 1-31 ./build.sh --noBind
 ./setup-hugetlbfs.sh
 
 # bind ports to igb_uio driver
-python3 /root/moongen/libmoon/deps/dpdk/usertools/dpdk-devbind.py --bind=igb_uio ens4f0 | true
-python3 /root/moongen/libmoon/deps/dpdk/usertools/dpdk-devbind.py --bind=igb_uio ens4f1 | true
+python3 /root/moongen/libmoon/deps/dpdk/usertools/dpdk-devbind.py --bind=igb_uio 17:00.0
+python3 /root/moongen/libmoon/deps/dpdk/usertools/dpdk-devbind.py --bind=igb_uio 17:00.1
 
 cd /root/implementation/experiment/splitter/capture/lua
 ./build.sh

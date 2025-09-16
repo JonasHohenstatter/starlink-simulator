@@ -58,7 +58,6 @@ extern "C" void sw_receiver_loop_api(int port_id, int queue_id, struct rte_ring*
 			uint64_t loss_state = timestamp;
 
 			if(loss_value > 0){
-				std::cout << "Loss exceed" << loss_value << std::endl;
 				rx = applyLoss(rx, bufs, bufs_accept, loss_value, &loss_state);
 				for(int i = 0; i < rx; i++){
 					set_timestamp_dynfield(bufs_accept[i], timestamp + delay);

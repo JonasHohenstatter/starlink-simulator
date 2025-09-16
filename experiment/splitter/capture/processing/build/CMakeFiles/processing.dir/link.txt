@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wall -Wextra -O3 -std=gnu++20 CMakeFiles/processing.dir/processing.cpp.o CMakeFiles/processing.dir/importer.cpp.o CMakeFiles/processing.dir/utils.cpp.o -o processing  -lpthread 

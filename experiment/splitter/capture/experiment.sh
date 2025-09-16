@@ -10,7 +10,7 @@ set -x
 # wait for experiment to start
 pos_sync -t start
 
-sleep 10
+sleep 15
 # start capturing
 pos_run capture -- taskset -c 1 /root/moongen/build/MoonGen /root/implementation/experiment/splitter/capture/lua/capture.lua 1 0 --seq-offset 42 -t 1
 
@@ -22,7 +22,7 @@ sleep 10
 pos_kill capture --force-upload
 
 # wait for capture to stop
-sleep 5
+sleep 10
 chrt 1 taskset -c 1-31 /root/implementation/experiment/splitter/capture/processing/process.sh
 
 apt-get update
@@ -35,4 +35,7 @@ folder_name="$1_measurement_$(date +"%Y-%m-%d_%H-%M-%S")"
 
 python3 /root/implementation/experiment/splitter/capture/processing/graph/draw_graph.py latency_average.csv loss_over_time.csv "$folder_name"
 
-pos_upload -r /root/"$folder_name"
+pos_upload --force-upload -r /root/"$folder_name" -o "$folder_name"
+
+rm /root/*.csv
+rm /root/*.cap

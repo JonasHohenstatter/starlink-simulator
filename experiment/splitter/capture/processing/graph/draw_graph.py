@@ -4,7 +4,7 @@ import os
 import datetime
 import csv
 
-def plot_combined_data(latency_filename, loss_filename):
+def plot_combined_data(latency_filename, loss_filename, folder_name):
     """
     Reads latency and loss data, synchronizes them, and generates a
     plot with high-res latency and per-second aggregated packet loss.
@@ -100,10 +100,6 @@ def plot_combined_data(latency_filename, loss_filename):
     ax2.tick_params(axis='y', labelcolor=color2)
     ax2.set_ylim(0, 100)
     
-    now = datetime.datetime.now()
-    timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
-    folder_name = f"measurement_{timestamp}"
-    
     os.makedirs(folder_name, exist_ok=True)
     
     with open(f'{folder_name}/latency_data.csv', 'w', newline='') as f:
@@ -132,5 +128,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate a combined latency and loss graph from data files.')
     parser.add_argument('latency_file', type=str, help='Path to the latency data file.')
     parser.add_argument('loss_file', type=str, help='Path to the packet loss data file.')
+    parser.add_argument('folder_name', type=str, help='Path to output dir.')
     args = parser.parse_args()
-    plot_combined_data(args.latency_file, args.loss_file)
+    plot_combined_data(args.latency_file, args.loss_file, args.folder_name)
