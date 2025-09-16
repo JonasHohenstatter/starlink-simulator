@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -fno-stack-protector -Wall -Wextra -Wno-unused-parameter -g -O3 -std=gnu++11 -march=native -I/root/implementation/experiment/splitter/capture/lua/src -shared -Wl,-soname,libcapture.so -o libcapture.so CMakeFiles/capture.dir/capture.cpp.o 

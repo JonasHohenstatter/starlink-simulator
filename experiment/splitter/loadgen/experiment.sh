@@ -13,4 +13,4 @@ pos_run loadgen -- taskset -c 16 /root/moongen/build/MoonGen /root/implementatio
 
 pos_sync -t end
 
-pos_kill loadgen
+pos_kill --force-upload loadgen

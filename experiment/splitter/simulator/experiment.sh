@@ -13,7 +13,7 @@ pip install -r /root/implementation/requirements.txt
 
 pos_run delayer -- taskset -c 1 /root/moongen/build/MoonGen /root/implementation/emulator/moonem.lua 0 0 --port 12345 --api
 
-sleep 5
+sleep 10
 
 python3 /root/implementation/simulator/app.py
 

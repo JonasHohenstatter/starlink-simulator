@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -fno-stack-protector -Wall -Wextra -Wno-unused-parameter -g -O3 -std=gnu++11 -march=native -I/root/implementation/emulator/src -shared -Wl,-soname,libmoonem.so -o libmoonem.so CMakeFiles/moonem.dir/moonem.cpp.o CMakeFiles/moonem.dir/moonem_api.cpp.o CMakeFiles/moonem.dir/moonem_sw.cpp.o 
