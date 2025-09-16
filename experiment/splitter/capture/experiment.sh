@@ -9,20 +9,15 @@ set -x
 
 # wait for experiment to start
 pos_sync -t start
-
-sleep 15
 # start capturing
 pos_run capture -- taskset -c 1 /root/moongen/build/MoonGen /root/implementation/experiment/splitter/capture/lua/capture.lua 1 0 --seq-offset 42 -t 1
 
 # wait for load generator to stop
 pos_sync -t end
 
-# wait for traffic to stop and kill capture process
-sleep 10
+sleep 5
 pos_kill capture --force-upload
 
-# wait for capture to stop
-sleep 10
 chrt 1 taskset -c 1-31 /root/implementation/experiment/splitter/capture/processing/process.sh
 
 apt-get update

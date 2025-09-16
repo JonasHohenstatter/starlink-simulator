@@ -23,7 +23,7 @@ def get_data(timestamp, connection, amount):
     """
     current_desc_path = connection.get_descriptor_path()
     ms = []
-    for ts in range(timestamp, timestamp + amount + 1):
+    for ts in range(timestamp, timestamp + amount):
         positions = get_positions(connection.get_constellation(), datetime.now(timezone.utc) + timedelta(seconds=ts))
         rtt = random.gauss(mu=15, sigma=0.5)
         loss = 0.0
@@ -49,25 +49,33 @@ def run_emulation(flags, connection, io):
     amount = 20
     port = 12345
     
-    duration = 360
+    duration = 600
+    
+    con = copy.deepcopy(connection)
+    
+    starting_time = 0
+    data1 = get_data(starting_time, con, amount)
+    starting_time += amount
+    data2 = get_data(starting_time, con, amount)
+    starting_time += amount
     
     api = APIConnector(port, amount)
-    con = copy.deepcopy(connection)
-    starting_time = 0
+    
+    
     
     while api.read_request() == 0: continue
-    api.send_data(get_data(starting_time, con, amount))
-    starting_time += amount
-        
+    api.send_data(data1)
     while api.read_request() == 0: continue
-    api.send_data(get_data(starting_time, con, amount))
-    starting_time += amount
-    
+    api.send_data(data2)
+
     subprocess.Popen("pos_sync -t start", shell=True)
     
     while flags["emulation"]:
-        if api.read_request() == 0: continue
         data = get_data(starting_time, con, amount)
+        while api.read_request() == 0: 
+            if not flags["emulation"]:
+                break
+            continue
         starting_time += amount
         api.send_data(data)
         if starting_time >= duration:
