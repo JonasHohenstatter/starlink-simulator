@@ -7,6 +7,8 @@ set -e
 # # log every command
 set -x
 
+cd /root
+
 pos_sync -t start
 
 sleep 5
@@ -16,3 +18,5 @@ pos_run loadgen -- taskset -c 16 /root/moongen/build/MoonGen /root/implementatio
 pos_sync -t end
 
 pos_kill --force-upload loadgen
+
+pos_sync -t cleanup

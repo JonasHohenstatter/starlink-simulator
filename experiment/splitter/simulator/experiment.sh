@@ -15,5 +15,10 @@ pos_run delayer -- taskset -c 1 /root/moongen/build/MoonGen /root/implementation
 
 sleep 10
 
-python3 /root/implementation/simulator/app.py
+pos_run simulator -- taskset -c 1 python3 /root/implementation/simulator/app.py
+
+pos_sync -t cleanup
+
+pos_kill delayer --force-upload
+pos_kill simulator --force-upload
 

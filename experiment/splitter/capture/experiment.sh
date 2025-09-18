@@ -7,6 +7,8 @@ set -e
 # # log every command
 set -x
 
+cd /root
+
 # wait for experiment to start
 pos_sync -t start
 # start capturing
@@ -31,6 +33,8 @@ folder_name="$1_measurement_$(date +"%Y-%m-%d_%H-%M-%S")"
 python3 /root/implementation/experiment/splitter/capture/processing/graph/draw_graph.py latency_average.csv loss_over_time.csv "$folder_name"
 
 pos_upload --force-upload -r /root/"$folder_name" -o "$folder_name"
+
+pos_sync -t cleanup
 
 rm /root/*.csv
 rm /root/*.cap

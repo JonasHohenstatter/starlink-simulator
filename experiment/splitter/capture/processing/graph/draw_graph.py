@@ -76,7 +76,7 @@ def plot_combined_data(latency_filename, loss_filename, folder_name):
         loss_percentages.append(percentage)
         
     # --- NEW: Filter loss points to only include those > 0 ---
-    filtered_loss_points = [(t, p) for t, p in zip(time_in_seconds_loss, loss_percentages) if p > 0]
+    filtered_loss_points = [(t, p) for t, p in zip(time_in_seconds_loss, loss_percentages)]
     
     plot_time_loss, plot_percentages_loss = [], []
     if filtered_loss_points:
@@ -92,11 +92,12 @@ def plot_combined_data(latency_filename, loss_filename, folder_name):
     ax1.plot(time_in_seconds_latency, latencies_in_ms, linewidth=2, color=color1, label='Latency')
     ax1.tick_params(axis='y', labelcolor=color1)
     ax1.grid(True, which='both', linestyle='--', linewidth=0.5)
+    ax1.set_ylim(min(latencies_in_ms) - 1, max(latencies_in_ms) + 1)
 
     ax2 = ax1.twinx()
     color2 = 'red'
     ax2.set_ylabel('Packet Loss (%)', fontsize=12, color=color2)
-    ax2.plot(plot_time_loss, plot_percentages_loss, color=color2, linestyle='none', marker='o', markersize=5, label='Packet Loss (>0%)')
+    ax2.plot(plot_time_loss, plot_percentages_loss, color=color2, linestyle='--', label='Packet Loss (>0%)')
     ax2.tick_params(axis='y', labelcolor=color2)
     ax2.set_ylim(0, 100)
     

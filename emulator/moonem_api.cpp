@@ -75,12 +75,14 @@ extern "C" void receive_connection_data_loop(int port) {
         if(data_receiver(connection, amount, array_use)){
             continue;
         };
-        
+
         write(connection, msg, len);
 
         if(data_receiver(connection, amount, array_buffer)) {
             break;
         };
+
+        array_size = amount;
 
         array_used_flag.store(false);
 
@@ -92,7 +94,7 @@ extern "C" void receive_connection_data_loop(int port) {
             if(data_receiver(connection, amount, array_buffer)) {
                 break;
             };
-            array_size = amount;
+            
         }
         close(connection);
         free(array_buffer);

@@ -8,7 +8,7 @@ def get_connection_data(starter, amount):
     data = []
     for i in range(amount):
         timestamp = starter + i
-        delay = 10  # Simulating a delay in milliseconds
+        delay = random.randint(20, 45) * 1000000 # Simulating a delay in milliseconds
         capacity = 1000000000000000
         loss = 0
         data.append((timestamp, delay, capacity, loss))

@@ -39,7 +39,7 @@ def get_data(timestamp, connection, amount):
         path_coords_ecef = descriptor_path_to_coords(current_desc_path, positions, connection, False)
         dist = get_path_length(path_coords_ecef)
         rtt += max(0, random.gauss(distance_to_rtt(dist), 0.5))
-        ms.append({"timestamp" : ts, "delay" : round(rtt * 1000000), "capacity" : ts, "loss" : loss} )
+        ms.append({"timestamp" : ts, "delay" : round(rtt * 1000000), "capacity" : ts, "loss" : loss / 100} )
         with open("output.csv", "a", newline="") as f:  # 'a' = append mode
             writer = csv.writer(f)
             writer.writerow([f"{ts},{round(rtt * 1000000)},{ts},{loss / 100}"])
@@ -49,7 +49,7 @@ def run_emulation(flags, connection, io):
     amount = 20
     port = 12345
     
-    duration = 600
+    duration = 360
     
     con = copy.deepcopy(connection)
     
