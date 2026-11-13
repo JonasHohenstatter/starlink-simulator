@@ -165,15 +165,18 @@ document.getElementById("gs_form").addEventListener("submit", (e) => {
     }
 })
 
-document.getElementById("emulation_form").addEventListener("submit", (e) => {
+let emulation_form = document.getElementById("emulation_form")
+if(emulation_form != null) {
+    document.getElementById("emulation_form").addEventListener("submit", (e) => {
     e.preventDefault();
-        socket.emit("ctrl_start_emulation")
-})
+    socket.emit("ctrl_start_emulation")
+    })
 
- document.getElementById("emulation_stop").addEventListener("click",  (e) => {
-    socket.emit("ctrl_stop_emulation")
-})
- 
+    document.getElementById("emulation_stop").addEventListener("click",  (e) => {
+        socket.emit("ctrl_stop_emulation")
+    })
+}
+
 
 
 socket.on("gs_update", (data) => {

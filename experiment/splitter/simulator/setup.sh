@@ -10,7 +10,9 @@ set -x
 cd /root
 
 # install ice ddp package
-git clone https://gitlab+deploy-token-1810:REDACTED@gitlab.lrz.de/idp-lachnit/ice.git -b ice-1.11.14
+# load clone URLs (contain secrets) from the untracked .env copied along with the repo
+set -a; source /root/Implementation/.env; set +a
+git clone "$ICE_CLONE_URL" -b ice-1.11.14
 mkdir -p /lib/firmware/updates/intel/ice/ddp
 cp /root/ice/ddp/ice-1.3.30.0.pkg /lib/firmware/updates/intel/ice/ddp/
 (cd /lib/firmware/updates/intel/ice/ddp && ln -sf ice-1.3.30.0.pkg ice.pkg)
@@ -21,7 +23,7 @@ apt-get install -y meson ninja-build pkg-config python3-pyelftools libsystemd-de
 
 # install moongen
 cd /root
-git clone https://moongen:REDACTED@gitlab.lrz.de/moongen/moongen.git
+git clone "$MOONGEN_CLONE_URL"
 cd /root/moongen
 git checkout v22.11
 echo "moongen commit hash: $(git rev-parse HEAD)"
